@@ -4,10 +4,12 @@
 # uploads the directory and tells Pages to serve it. If you move the site into a
 # subdirectory (a common choice is `docs/`), change `path:` below to match.
 #
-# No manual setup is required: `enablement: true` on the Configure Pages step
-# below creates the Pages site on first run. If that ever fails (an org can
-# forbid it), do it by hand instead: Settings → Pages → Build and deployment →
-# Source → "GitHub Actions".
+# One-time setup, required once per repository and not automatable from here
+# (see the note on the Configure Pages step): Settings → Pages → Build and
+# deployment → Source → "GitHub Actions". Until that is set, every run fails at
+# Configure Pages with "Get Pages site failed. Error: Not Found" — an API 404
+# for a site that does not exist yet, which reads like a broken workflow rather
+# than an unconfigured repository.
 name: Deploy site to GitHub Pages
 
 on:
@@ -38,15 +40,14 @@ jobs:
       - name: Check out
         uses: actions/checkout@v4
 
+      # Deliberately no `enablement: true` here. It looks like it would remove
+      # the one-time manual step below, but the automatic GITHUB_TOKEN cannot
+      # create a Pages site — the API needs repository-admin credentials, so
+      # the attempt fails with "Create Pages site failed. Error: Resource not
+      # accessible by integration" and buries the real cause under a second,
+      # less obvious error. Enable Pages once by hand instead.
       - name: Configure Pages
         uses: actions/configure-pages@v5
-        with:
-          # Create the Pages site if it does not exist yet, instead of failing
-          # with "Get Pages site failed … Error: Not Found". Without this the
-          # very first run of a fresh repository always fails, and the error
-          # names an API 404 rather than the missing setting that caused it.
-          # Needs the `pages: write` permission granted above.
-          enablement: true
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3

@@ -29,14 +29,19 @@ telling you to press Ctrl+C.
 ## Deploy to GitHub Pages
 
 1. Push this directory as the root of a **public** repository.
-2. That is all. The included workflow runs on every push to `main`, creates the
-   Pages site if it does not exist (`enablement: true`), uploads the directory
-   and deploys it. The live URL appears under Settings → Pages.
+2. **Settings → Pages → Build and deployment → Source → GitHub Actions.**
+3. Push to `main`, or press **Re-run jobs** on the failed first run. The included
+   workflow uploads the directory and deploys it; the live URL then appears at
+   the top of Settings → Pages.
 
-If the enablement step is ever refused — some organisations disallow it — turn
-Pages on by hand instead: **Settings → Pages → Build and deployment → Source →
-GitHub Actions**, then re-run the job. The symptom is a failed run whose error
-reads `Get Pages site failed … Error: Not Found`.
+Step 2 has to be done by hand, once. The workflow cannot do it for you:
+`actions/configure-pages` accepts an `enablement: true` input that looks like it
+would, but creating a Pages site requires repository-admin credentials and the
+automatic `GITHUB_TOKEN` is not one — it fails with `Create Pages site failed.
+Error: Resource not accessible by integration`.
+
+Before step 2, every run fails at Configure Pages with `Get Pages site failed.
+Error: Not Found`. That is the expected symptom, not a broken workflow.
 
 Hosting is free: Pages and Actions minutes both cost nothing on public
 repositories. A private repository would need a paid plan to publish.
