@@ -51,7 +51,7 @@ Or skip Actions entirely: **Settings → Pages → Source → Deploy from a bran
 
 Every asset reference is relative (`assets/css/styles.css`, not `/assets/...`), so
 the site works unchanged at a user page (`org.github.io`) *and* at a project page
-(`org.github.io/nexarag-site/`). Keep it that way — a leading slash breaks project
+(`org.github.io/Nexarag-site/`). Keep it that way — a leading slash breaks project
 pages and the failure only shows up after deploy.
 
 ## Editing
