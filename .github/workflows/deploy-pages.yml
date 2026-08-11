@@ -1,0 +1,51 @@
+# Publishes the site to GitHub Pages.
+#
+# There is no build step — the site is static HTML, CSS and JS — so this only
+# uploads the directory and tells Pages to serve it. If you move the site into a
+# subdirectory (a common choice is `docs/`), change `path:` below to match.
+#
+# One-time setup in the repository: Settings → Pages → Build and deployment →
+# Source → "GitHub Actions". Without that, this workflow runs and deploys
+# nothing, which looks exactly like a broken build.
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Lets you redeploy from the Actions tab without pushing a commit.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race. `cancel-in-progress: false` so a queued deploy
+# finishes rather than being dropped — the last push should always win, but only
+# after the one already publishing has landed.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # The site root. Change to './docs' if you nest it.
+          path: '.'
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
