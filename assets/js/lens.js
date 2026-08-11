@@ -2,21 +2,29 @@
    Nexarag — the lens motif engine.
 
    Everything here animates ONE idea: a lens scanning a body of text and
-   retrieving what matters. Six parts:
+   retrieving what matters. Eight parts:
 
-     1. A custom cursor — the lens you carry around the page.
+     1. The lens cursor — a ring that accompanies the pointer. It never replaces
+        it: see the note in styles.css for what that cost the light theme.
      2. The hero sequence — words "found" one by one as the lens calibrates.
-     3. The retrieval scene — a sticky, scroll-driven sweep across a document
-        wall: terms illuminate as the lens passes, connectors draw between
-        matches, and the answer surfaces once the evidence exists.
+     3. The retrieval scene — a pinned, scroll-driven telling of four named
+        beats (ask · search · gather · answer): the lens crosses the page, each
+        match stays lit, connectors are drawn to the answer column, and the
+        answer arrives there. The status text and the beat list are read from
+        the same beat table the animation uses, so the words on screen cannot
+        drift out of step with the picture.
      4. The architecture diagram — the page's second set piece: boxes resolve
         band by band, edges draw in the order data flows, packets travel them,
-        and hovering a box traces one hop out from it.
+        and hovering a box traces one hop out from it. Its progress is eased
+        toward the scroll position, so a fling builds the diagram instead of
+        teleporting it.
      5. The data-flow rail — the reader's scroll position advances the pipeline.
-     6. Small echoes — a scan-flash on copy.
+     6. Hero counters, and parking the orbs when the hero is off screen.
+     7. Small echoes — a scan-flash on copy.
 
-   The rest of the motif is declarative: the section treatments in the lens
-   layer of styles.css ride the .reveal observer in site.js and need no code.
+   The rest of the motif is declarative. Section treatments are scrubbed by
+   native scroll-driven animations in the last layer of styles.css and need no
+   code at all; the .reveal observer in site.js is their fallback.
 
    Performance rules, enforced throughout: continuous animation writes ONLY
    transform/opacity/CSS-variables; geometry is measured on resize, never in
@@ -46,27 +54,30 @@
     var wrap = document.createElement('div');
     wrap.className = 'nx-cursor';
     wrap.setAttribute('aria-hidden', 'true');
-    wrap.innerHTML =
-      '<span class="nx-cursor__ring"><i></i><i></i><i></i><i></i></span>' +
-      '<span class="nx-cursor__dot"></span>';
+    // The ring only. The native pointer is never hidden — it is the one thing on
+    // the page that must be visible in every theme, and a decorative element is
+    // the wrong thing to bet that on. (See the note in styles.css: the previous
+    // blend-mode ring was invisible on the light theme with no pointer behind
+    // it.) The old inner dot existed to replace the pointer's tip, so it goes.
+    wrap.innerHTML = '<span class="nx-cursor__ring"><i></i><i></i><i></i><i></i></span>';
+    // Hidden until the pointer first moves. Parked at -100,-100 the ring is not
+    // off screen — it is a quarter of a circle in the top-left corner, which
+    // used to be invisible only because the blend mode made it invisible
+    // everywhere.
+    wrap.style.opacity = '0';
     document.body.appendChild(wrap);
-    root.classList.add('has-lens-cursor');
 
     var ring = wrap.children[0];
-    var dot = wrap.children[1];
-    var mx = -100, my = -100, rx = -100, ry = -100, dx = -100, dy = -100;
+    var mx = -100, my = -100, rx = -100, ry = -100;
     var raf = null;
 
-    // The ring trails the pointer (low lerp factor = the fluid "heavy glass"
-    // feel), the dot stays tight. The loop parks itself once both settle, so
-    // an idle pointer costs zero frames.
+    // The ring trails the pointer — a low lerp factor is the fluid "heavy
+    // glass" feel. The loop parks itself once it settles, so an idle pointer
+    // costs zero frames.
     function frame() {
       rx += (mx - rx) * 0.16;
       ry += (my - ry) * 0.16;
-      dx += (mx - dx) * 0.55;
-      dy += (my - dy) * 0.55;
       ring.style.transform = 'translate3d(' + rx + 'px,' + ry + 'px,0)';
-      dot.style.transform = 'translate3d(' + dx + 'px,' + dy + 'px,0)';
       if (Math.abs(mx - rx) + Math.abs(my - ry) > 0.15) {
         raf = requestAnimationFrame(frame);
       } else {
@@ -75,6 +86,15 @@
     }
 
     document.addEventListener('mousemove', function (e) {
+      if (mx < 0) {
+        // First sighting: place the ring rather than flying it in from the
+        // corner it was parked in.
+        rx = mx = e.clientX;
+        ry = my = e.clientY;
+        ring.style.transform = 'translate3d(' + rx + 'px,' + ry + 'px,0)';
+        wrap.style.opacity = '1';
+        return;
+      }
       mx = e.clientX;
       my = e.clientY;
       if (raf === null) raf = requestAnimationFrame(frame);
@@ -110,7 +130,24 @@
     });
   }
 
-  /* --- 3. the retrieval scene ------------------------------------------------ */
+  /* --- 3. the retrieval scene ------------------------------------------------
+     Four beats, named in the markup and lit from the scroll position:
+
+       1 Ask     the question is on screen from the start
+       2 Search  the lens crosses the page, each match staying lit behind it
+       3 Gather  a connector is drawn from every match to the answer column
+       4 Answer  the answer surfaces, and the whole page comes into focus
+
+     The beat boundaries below are the single source of that story: the status
+     text, the beat list, the connectors and the answer all read from them, so
+     the words on screen cannot drift out of step with the animation. */
+
+  var BEATS = [
+    { at: 0,    label: 'Your question' },
+    { at: 0.06, label: 'Reading your document' },
+    { at: 0.62, label: 'Keeping the passages that match' },
+    { at: 0.82, label: 'Answering — from those passages only' },
+  ];
 
   function initScene() {
     var scene = document.getElementById('retrieve-scene');
@@ -122,6 +159,7 @@
     var dimHits = [].slice.call(scene.querySelectorAll('.doc__dim .hit'));
     var linksSvg = scene.querySelector('.scene__links');
     var answer = scene.querySelector('.scene__answer');
+    var beats = [].slice.call(scene.querySelectorAll('.scene__beats li'));
     var counter = scene.querySelector('[data-scene-count]');
     var status = scene.querySelector('[data-scene-status]');
     if (!stage || !lens || !hits.length || !answer) return;
@@ -134,13 +172,20 @@
       var dr = doc.getBoundingClientRect();
       stage.style.setProperty('--dox', (dr.left - sr.left).toFixed(1) + 'px');
       stage.style.setProperty('--doy', (dr.top - sr.top).toFixed(1) + 'px');
-      rBase = Math.max(80, Math.min(140, sr.width * 0.2));
+      rBase = Math.max(78, Math.min(132, dr.width * 0.3));
       pts = hits.map(function (h) {
         var r = h.getBoundingClientRect();
         return { x: r.left - sr.left + r.width / 2, y: r.top - sr.top + r.height / 2 };
       });
+
+      // Where the connectors land. Beside the document (the wide layout) they
+      // aim at the answer card's near edge; stacked, they aim at its top. Either
+      // way it is a point on something the reader can already see — the previous
+      // version drew them into the corner where the card would eventually be.
       var ar = answer.getBoundingClientRect();
-      ansPt = { x: ar.left - sr.left + ar.width / 2, y: ar.top - sr.top + 6 };
+      ansPt = ar.left - dr.right > 8
+        ? { x: ar.left - sr.left, y: ar.top - sr.top + Math.min(28, ar.height / 2) }
+        : { x: ar.left - sr.left + ar.width / 2, y: ar.top - sr.top + 4 };
 
       // Connectors are rebuilt from the REAL positions of the matched terms,
       // so the drawing always lands on the words — at any viewport width.
@@ -166,25 +211,52 @@
       });
     }
 
-    // Reduced motion: measure once so the connectors exist, then jump the
-    // whole scene to its found state. The story is still told — as a still.
-    if (!motionOK()) {
+    // The still version: everything found, every beat readable. Used for reduced
+    // motion, and for any viewport where pinning a two-column stage would mean
+    // squeezing it — a scene the reader has to scroll *inside* explains nothing.
+    function tellAsStill() {
       measure();
-      scene.classList.add('scene--done');
-      if (counter) counter.textContent = hits.length + '/' + hits.length;
-      if (status) status.textContent = 'GROUNDED';
+      scene.classList.remove('scene--live');
+      if (counter) counter.textContent = hits.length + ' of ' + hits.length;
+      if (status) status.textContent = 'Answered from ' + hits.length + ' passages';
+      hits.forEach(function (h) { h.classList.add('lit'); });
+      dimHits.forEach(function (h) { h.classList.add('lit'); });
+      beats.forEach(function (b) { b.removeAttribute('data-on'); b.setAttribute('data-done', ''); });
+      answer.classList.add('surfaced');
+    }
+
+    /* Both bounds are measured, not guessed: below 1000px the document and the
+       answer cannot sit side by side, and below 780px of viewport the answer card
+       runs past the bottom of the stage. Pinning a scene the reader has to scroll
+       inside explains nothing, so those viewports get the still instead. */
+    function canPin() {
+      return motionOK() &&
+        window.matchMedia('(min-width: 1000px)').matches &&
+        window.innerHeight >= 800;
+    }
+
+    if (!canPin()) {
+      // Decided once. A window that later grows keeps the still — re-arming
+      // mid-session would add 300vh underneath a reader who is already past the
+      // scene, and the browser clamps their scroll position to the shorter page
+      // without putting it back. The still is a complete telling, not a stub.
+      tellAsStill();
+      onResize(measure);
       return;
     }
 
     scene.classList.add('scene--live');
     measure();
-    if (counter) counter.textContent = '0/' + pts.length;
+    if (counter) counter.textContent = '0 of ' + pts.length;
 
-    var LEAD = 0.74; // the lens completes its route at 74% scroll; the rest is the answer
-    var START = { fx: 0.1, fy: 0.08 };
+    var LEAD = BEATS[2].at; // the lens finishes its route as beat 3 begins
+    var START = { fx: 0.12, fy: 0.1 };
 
     function lensAt(p, sw, sh) {
-      var way = [{ x: START.fx * sw, y: START.fy * sh }].concat(pts).concat([ansPt]);
+      // The route ends on the last match, not on the answer: the lens belongs to
+      // the document, and flying it into the answer column suggested the answer
+      // was somewhere on the page to be found.
+      var way = [{ x: START.fx * sw, y: START.fy * sh }].concat(pts);
       var segs = way.length - 1;
       var t = Math.min(p / LEAD, 1) * segs;
       var i = Math.min(Math.floor(t), segs - 1);
@@ -198,17 +270,22 @@
       };
     }
 
-    var lit = -1, phase = '';
+    var lit = -1, beat = -1;
 
     function render(p) {
       var sr = stage.getBoundingClientRect();
       var pos = lensAt(p, sr.width, sr.height);
       var r = p < 0.04 ? (p / 0.04) * rBase : rBase;
-      if (p > 0.84) {
-        var t = (p - 0.84) / 0.16;
-        r = rBase + t * t * Math.hypot(sr.width, sr.height);
+      if (p > BEATS[3].at) {
+        // The finale, on the same beat as the answer: the circle grows past the
+        // stage so the whole page ends up in focus — "all of it was read", not
+        // "here is the bit we liked". It has to *finish* inside the beat; a
+        // finale still expanding at the end of the scroll leaves the reader
+        // looking at a lens-shaped hole with the answer already written.
+        var t = Math.min((p - BEATS[3].at) / 0.1, 1);
+        r = rBase + t * t * Math.hypot(sr.width, sr.height) * 1.15;
       }
-      lens.style.opacity = p > 0.84 ? '0' : '';
+      lens.style.opacity = p > BEATS[3].at ? '0' : '';
 
       stage.style.setProperty('--cx', pos.x.toFixed(1) + 'px');
       stage.style.setProperty('--cy', pos.y.toFixed(1) + 'px');
@@ -216,10 +293,9 @@
       lens.style.transform =
         'translate3d(' + pos.x.toFixed(1) + 'px,' + pos.y.toFixed(1) + 'px,0) translate(-50%,-50%)';
 
-      var segs = pts.length + 1;
       var newLit = -1;
       for (var i = 0; i < pts.length; i++) {
-        if (p >= ((i + 1) / segs) * LEAD - 0.01) newLit = i;
+        if (p >= ((i + 0.85) / pts.length) * LEAD) newLit = i;
       }
       if (newLit !== lit) {
         lit = newLit;
@@ -227,56 +303,55 @@
           hits[j].classList.toggle('lit', j <= lit);
           if (dimHits[j]) dimHits[j].classList.toggle('lit', j <= lit);
         }
-        if (counter) counter.textContent = (lit + 1) + '/' + pts.length;
+        if (counter) counter.textContent = (lit + 1) + ' of ' + pts.length;
       }
 
+      // Beat 3: one connector per match, drawn in the order they were found.
+      var span = BEATS[3].at - BEATS[2].at;
       for (var k = 0; k < paths.length; k++) {
-        var start = ((k + 1) / segs) * LEAD;
-        var q = Math.max(0, Math.min(1, (p - start) / 0.09));
+        var from = BEATS[2].at + (k / paths.length) * span;
+        var q = clamp01((p - from) / (span / paths.length + 0.02));
         paths[k].style.strokeDashoffset = String(1 - q);
       }
 
-      answer.classList.toggle('surfaced', p > 0.8);
+      answer.classList.toggle('surfaced', p > BEATS[3].at);
 
-      var ph = p < 0.05 ? 'CALIBRATING' : p < 0.72 ? 'SCANNING' : p < 0.8 ? 'COMPOSING' : 'GROUNDED';
-      if (ph !== phase) {
-        phase = ph;
-        if (status) status.textContent = ph;
+      var b = 0;
+      for (var m = 0; m < BEATS.length; m++) if (p >= BEATS[m].at) b = m;
+      if (b !== beat) {
+        beat = b;
+        if (status) status.textContent = BEATS[b].label;
+        for (var n = 0; n < beats.length; n++) {
+          if (n === b) beats[n].setAttribute('data-on', '');
+          else beats[n].removeAttribute('data-on');
+          if (n < b) beats[n].setAttribute('data-done', '');
+          else beats[n].removeAttribute('data-done');
+        }
       }
     }
 
-    var active = false, ticking = false;
+    var scrub = registerScrub(
+      function () {
+        return sceneProgress(scene);
+      },
+      render
+    );
 
-    function onScroll() {
-      if (!active || ticking) return;
-      ticking = true;
-      requestAnimationFrame(function () {
-        ticking = false;
-        var r = scene.getBoundingClientRect();
-        var total = r.height - window.innerHeight;
-        var p = Math.max(0, Math.min(1, -r.top / (total <= 0 ? 1 : total)));
-        render(p);
-      });
-    }
-
-    // The loop exists only while the scene is on screen.
     new IntersectionObserver(function (entries) {
-      active = entries[0].isIntersecting;
-      if (active) {
+      scrub.active = entries[0].isIntersecting;
+      if (scrub.active) {
         measure();
-        onScroll();
+        requestScrubFrame();
       }
     }, { rootMargin: '20% 0px 20% 0px' }).observe(scene);
 
-    window.addEventListener('scroll', onScroll, { passive: true });
-
-    var resizeTimer;
-    window.addEventListener('resize', function () {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(function () {
-        measure();
-        onScroll();
-      }, 150);
+    onResize(function () {
+      if (!canPin()) {
+        tellAsStill();
+        return;
+      }
+      measure();
+      requestScrubFrame();
     });
   }
 
@@ -407,11 +482,42 @@
     });
   }
 
+  /* The scene's own progress curve. Two things it must do that a plain
+     "how far through the pin are we" cannot:
+
+     1. Pre-roll. A 185vh scene pins with the figure centred and --p at 0, which
+        means the reader's first sight of it is an empty bordered panel the height
+        of their screen. Reading as broken is worse than any build animation is
+        good. So the first PRE of the beat range is spent while the section is
+        still travelling up the viewport: by the time it pins, the top tier is
+        already there and their scroll continues the build.
+
+     2. Work unpinned. On a short or narrow viewport the figure does not pin at
+        all, and the same function has to scrub it as it travels past. */
+  var ARCH_PRE = 0.26;
+
+  function archProgress(el) {
+    var r = el.getBoundingClientRect();
+    var vh = window.innerHeight;
+    var span = r.height - vh;
+    if (span > 40) {
+      if (r.top > 0) {
+        var from = vh * 0.85;
+        return clamp01((from - r.top) / from) * ARCH_PRE;
+      }
+      return ARCH_PRE + clamp01(-r.top / span) * (1 - ARCH_PRE);
+    }
+    var f = vh * 0.9;
+    var t = vh * 0.12;
+    return clamp01((f - r.top) / (f - t));
+  }
+
   function initArchitecture() {
     var scene = document.getElementById('architecture-scene');
     if (!scene) return;
     var svg = scene.querySelector('.diagram svg');
     var figure = scene.querySelector('.diagram');
+    var head = scene.querySelector('.arch__head');
     if (!svg || !figure) return;
 
     // Tracing is information, not decoration — it stays available under reduced
@@ -427,7 +533,6 @@
     var wide = window.matchMedia('(min-width: 1024px)');
     var armed = false;
     var flowing = false;
-    var lastP = -1;
 
     // Sticky only where the figure genuinely fits. A sticky element taller than
     // its viewport does not stick — it scrolls, and all the extra height buys is
@@ -435,30 +540,66 @@
     //
     // Measured WITHOUT dropping the class first. `arch--live` changes only the
     // figure's margin and a width it already had, neither of which offsetHeight
-    // counts — but dropping it takes 130vh out of the document for the length of
-    // the measurement, and if the reader is below the scene the browser clamps
-    // their scroll position to the shorter page and does not put it back.
+    // counts — but dropping it takes the scene's height out of the document for
+    // the length of the measurement, and if the reader is below the scene the
+    // browser clamps their scroll position to the shorter page and does not put
+    // it back.
     function layout() {
       var avail = window.innerHeight - (header ? header.offsetHeight : 60) - 24;
-      scene.classList.toggle('arch--live', wide.matches && figure.offsetHeight <= avail);
+      var need = figure.offsetHeight + (head ? head.offsetHeight + 12 : 0);
+      scene.classList.toggle('arch--live', wide.matches && need <= avail);
+    }
+
+    /* Scrubbed motion is only as smooth as the scroll events driving it, and a
+       trackpad fling or a mouse-wheel notch delivers a big jump between two
+       frames — which lands on a diagram as a whole tier appearing at once, then
+       nothing, then another tier. Easing the written value toward the scroll's
+       value costs one rAF and turns those jumps into a build that keeps moving
+       at a legible speed whether the reader creeps or flings.
+
+       The loop parks itself as soon as it has caught up, so a still page and an
+       off-screen scene both cost zero frames. */
+    var target = 0;
+    var cur = -1;
+    var raf = null;
+
+    function write(p) {
+      // One custom property for the whole scene: the SVG's own groups and the
+      // build meter in the heading all derive their state from it in CSS, so a
+      // frame is a single style write however many parts the diagram grows.
+      if (armed) scene.style.setProperty('--p', p.toFixed(4));
+      // Packets belong to a finished graph. On a scene that was never armed
+      // (already on screen at boot) the graph is finished from the start.
+      var wantFlow = armed ? p > 0.82 : true;
+      if (wantFlow !== flowing) {
+        flowing = wantFlow;
+        scene.classList.toggle('arch--flow', wantFlow);
+      }
+    }
+
+    function tick() {
+      raf = null;
+      var d = target - cur;
+      if (Math.abs(d) < 0.0012) {
+        cur = target;
+        write(cur);
+        return;
+      }
+      cur += d * 0.22;
+      write(cur);
+      raf = requestAnimationFrame(tick);
+    }
+
+    function toward(p) {
+      target = p;
+      if (raf === null) raf = requestAnimationFrame(tick);
     }
 
     var scrub = registerScrub(
       function () {
-        return sceneProgress(scene);
+        return archProgress(scene);
       },
-      function (p) {
-        if (Math.abs(p - lastP) < 0.0008) return;
-        lastP = p;
-        if (armed) svg.style.setProperty('--p', p.toFixed(4));
-        // Packets belong to a finished graph. On a scene that was never armed
-        // (already on screen at boot) the graph is finished from the start.
-        var wantFlow = armed ? p > 0.8 : true;
-        if (wantFlow !== flowing) {
-          flowing = wantFlow;
-          scene.classList.toggle('arch--flow', wantFlow);
-        }
-      }
+      toward
     );
 
     layout();
@@ -468,14 +609,15 @@
       // Write the starting beat with the class, not on the first scroll. Armed
       // but unwritten, --p keeps its resting 1 and the diagram sits fully drawn
       // until something scrolls — which would then snap it back to empty.
-      svg.style.setProperty('--p', sceneProgress(scene).toFixed(4));
+      cur = archProgress(scene);
+      target = cur;
+      write(cur);
     }
 
     new IntersectionObserver(function (entries) {
       scrub.active = entries[0].isIntersecting;
       if (scrub.active) {
         layout();
-        lastP = -1;
         requestScrubFrame();
       } else if (flowing) {
         // Off screen the packet animation is stopped outright, not merely
@@ -487,7 +629,6 @@
 
     onResize(function () {
       layout();
-      lastP = -1;
       requestScrubFrame();
     });
   }
@@ -582,7 +723,68 @@
     });
   }
 
-  /* --- 7. echoes ------------------------------------------------------------ */
+  /* --- 7. hero counters and the orb idle switch ------------------------------ */
+
+  /* The four numbers under the hero are the page's claim; counting them up is
+     the one entrance animation worth keeping here, because it draws the eye to
+     the figures rather than to the motion. Runs once, on first sight. */
+  function initFacts() {
+    var values = [].slice.call(document.querySelectorAll('.fact__value'));
+    if (!values.length || !motionOK() || !('IntersectionObserver' in window)) return;
+
+    function run(el) {
+      var text = el.textContent.trim();
+      // "1,650+" → 1650 counted, "+" kept, thousands separator restored on the
+      // way out. Anything that does not start with a number is left alone.
+      var parts = /^([\d,]+)(.*)$/.exec(text);
+      if (!parts) return;
+      var target = parseInt(parts[1].replace(/,/g, ''), 10);
+      var suffix = parts[2];
+      var grouped = parts[1].indexOf(',') > -1;
+      var start = null;
+      var DUR = 900;
+
+      function step(now) {
+        if (start === null) start = now;
+        var t = Math.min((now - start) / DUR, 1);
+        var eased = 1 - Math.pow(1 - t, 3);
+        var n = Math.round(target * eased);
+        el.textContent = (grouped ? n.toLocaleString('en-US') : String(n)) + suffix;
+        if (t < 1) requestAnimationFrame(step);
+      }
+
+      el.textContent = '0' + suffix;
+      requestAnimationFrame(step);
+    }
+
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        observer.unobserve(entry.target);
+        run(entry.target);
+      });
+    }, { threshold: 0.6 });
+
+    values.forEach(function (el) {
+      observer.observe(el);
+    });
+  }
+
+  /* Where scroll timelines are missing, the orbs still drift on an infinite
+     loop; two blurred 26rem surfaces being recomposited behind a page nobody is
+     looking at is the kind of cost that shows up as scroll jank three sections
+     later. Parked whenever the hero is off screen. (With scroll timelines the
+     CSS keeps them running — there is nothing to park.) */
+  function initHeroIdle() {
+    var hero = document.querySelector('.hero');
+    if (!hero || !('IntersectionObserver' in window)) return;
+
+    new IntersectionObserver(function (entries) {
+      document.documentElement.classList.toggle('hero-idle', !entries[0].isIntersecting);
+    }, { rootMargin: '10% 0px 10% 0px' }).observe(hero);
+  }
+
+  /* --- 8. echoes ------------------------------------------------------------ */
 
   function initEchoes() {
     // A copy is an acquisition: flash the block's frame once.
@@ -603,6 +805,8 @@
   function boot() {
     initCursor();
     initHero();
+    initFacts();
+    initHeroIdle();
     initScene();
     initArchitecture();
     initSteps();

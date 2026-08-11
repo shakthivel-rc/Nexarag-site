@@ -68,6 +68,11 @@
       </svg>
     </button>
   </div>
+
+  <!-- Reading progress. Driven by a scroll-driven CSS animation where the
+       browser has them, and simply absent where it does not — there is nothing
+       to fall back to and nothing worth a scroll listener. -->
+  <div class="scroll-progress" aria-hidden="true"><span></span></div>
 </header>
 
 <!-- =====================================================================
@@ -186,51 +191,85 @@
          --------------------------------------------------------------- -->
     <section class="section scene" id="retrieve-scene" aria-labelledby="watch-it-retrieve">
       <div class="scene__sticky">
-        <div>
+        <div class="scene__intro">
           <span class="section__num">01</span>
           <h2 id="watch-it-retrieve" class="reveal reveal--wipe">Watch it retrieve</h2>
-          <p class="scene__q">Q: &ldquo;How much notice does termination require?&rdquo;</p>
+          <p class="scene__lede">Keep scrolling: this is the whole journey from a question to an
+            answer you can check — <b>ask</b>, <b>search</b>, <b>gather</b>, <b>answer</b>.</p>
         </div>
 
         <div class="scene__stage">
+          <!-- Plain-language status strip. Every label here is written for someone who
+               has never heard the word "retrieval": file being read on the left, what
+               the system is doing right now in the middle, evidence found on the right. -->
           <div class="scene__hud" aria-hidden="true">
-            <span><span data-scene-status>GROUNDED</span> · /corpus/agreement.pdf</span>
-            <span>MATCHES <b data-scene-count>4/4</b></span>
+            <span class="scene__hud-file">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>
+              </svg>
+              agreement.pdf
+            </span>
+            <span class="scene__hud-phase"><i></i><span data-scene-status>Reading your document</span></span>
+            <span class="scene__hud-count">Matching passages <b data-scene-count>4 of 4</b></span>
           </div>
 
-          <div class="doc">
-            <div class="doc__dim" aria-hidden="true">
-              <p class="doc__extra"><span class="clause">7.4</span> Fees are reviewed annually. Any revision takes effect at the next renewal and never mid-term. Disputed invoices are settled under clause 12 before any suspension of service.</p>
-              <p><span class="clause">8.</span> Term and ending. This agreement runs for an initial term of twelve months and renews automatically. It may be ended early by <b class="hit">either party</b>, at any time, without cause.</p>
-              <p><span class="clause">8.2</span> <b class="hit">Termination</b> for convenience requires <b class="hit">written notice</b> delivered to the other party&rsquo;s registered address, naming the intended end date.</p>
-              <p>Notice must arrive no fewer than <b class="hit">thirty (30) days</b> before that date. Fees already invoiced remain payable; clauses 5, 9 and 12 survive.</p>
-              <p class="doc__extra"><span class="clause">9.</span> Confidentiality. Each party keeps the other&rsquo;s information in confidence for three years after the agreement ends, whether ended by expiry or by notice.</p>
+          <!-- The four beats, as a stepper across the top of the stage: one row rather
+               than four stacked ones, which is both the faster read ("2 of 4") and what
+               lets the question, the page and the answer share a laptop viewport. The lit
+               one is where the scroll position is; the ones behind it stay marked done, so
+               the shape of the process is readable at any moment — including from a still
+               screenshot. -->
+          <ol class="scene__beats">
+            <li data-beat="1"><b>Ask</b><span>a question in plain language</span></li>
+            <li data-beat="2"><b>Search</b><span>every passage is read and scored</span></li>
+            <li data-beat="3"><b>Gather</b><span>only the passages that match are kept</span></li>
+            <li data-beat="4"><b>Answer</b><span>written from those passages alone</span></li>
+          </ol>
+
+          <div class="scene__body">
+            <div class="doc">
+              <span class="doc__tag" aria-hidden="true">Your document</span>
+              <div class="doc__page">
+                <div class="doc__dim" aria-hidden="true">
+                  <p class="doc__extra"><span class="clause">7.4</span> Fees are reviewed annually. Any revision takes effect at the next renewal and never mid-term. Disputed invoices are settled under clause 12 before any suspension of service.</p>
+                  <p><span class="clause">8.</span> Term and ending. This agreement runs for an initial term of twelve months and renews automatically. It may be ended early by <b class="hit">either party</b>, at any time, without cause.</p>
+                  <p><span class="clause">8.2</span> <b class="hit">Termination</b> for convenience requires <b class="hit">written notice</b> delivered to the other party&rsquo;s registered address, naming the intended end date.</p>
+                  <p>Notice must arrive no fewer than <b class="hit">thirty (30) days</b> before that date. Fees already invoiced remain payable; clauses 5, 9 and 12 survive.</p>
+                  <p class="doc__extra"><span class="clause">9.</span> Confidentiality. Each party keeps the other&rsquo;s information in confidence for three years after the agreement ends, whether ended by expiry or by notice.</p>
+                </div>
+                <div class="doc__sharp">
+                  <p class="doc__extra"><span class="clause">7.4</span> Fees are reviewed annually. Any revision takes effect at the next renewal and never mid-term. Disputed invoices are settled under clause 12 before any suspension of service.</p>
+                  <p><span class="clause">8.</span> Term and ending. This agreement runs for an initial term of twelve months and renews automatically. It may be ended early by <b class="hit">either party</b>, at any time, without cause.</p>
+                  <p><span class="clause">8.2</span> <b class="hit">Termination</b> for convenience requires <b class="hit">written notice</b> delivered to the other party&rsquo;s registered address, naming the intended end date.</p>
+                  <p>Notice must arrive no fewer than <b class="hit">thirty (30) days</b> before that date. Fees already invoiced remain payable; clauses 5, 9 and 12 survive.</p>
+                  <p class="doc__extra"><span class="clause">9.</span> Confidentiality. Each party keeps the other&rsquo;s information in confidence for three years after the agreement ends, whether ended by expiry or by notice.</p>
+                </div>
+              </div>
             </div>
-            <div class="doc__sharp">
-              <p class="doc__extra"><span class="clause">7.4</span> Fees are reviewed annually. Any revision takes effect at the next renewal and never mid-term. Disputed invoices are settled under clause 12 before any suspension of service.</p>
-              <p><span class="clause">8.</span> Term and ending. This agreement runs for an initial term of twelve months and renews automatically. It may be ended early by <b class="hit">either party</b>, at any time, without cause.</p>
-              <p><span class="clause">8.2</span> <b class="hit">Termination</b> for convenience requires <b class="hit">written notice</b> delivered to the other party&rsquo;s registered address, naming the intended end date.</p>
-              <p>Notice must arrive no fewer than <b class="hit">thirty (30) days</b> before that date. Fees already invoiced remain payable; clauses 5, 9 and 12 survive.</p>
-              <p class="doc__extra"><span class="clause">9.</span> Confidentiality. Each party keeps the other&rsquo;s information in confidence for three years after the agreement ends, whether ended by expiry or by notice.</p>
+
+            <div class="scene__rail">
+              <div class="scene__ask">
+                <span class="scene__ask-label">You asked</span>
+                <p class="scene__q">&ldquo;How much notice does termination require?&rdquo;</p>
+              </div>
+
+              <aside class="scene__answer" aria-label="The grounded answer">
+                <span class="scene__ask-label scene__ask-label--out">Nexarag answered</span>
+                <p>Either party may terminate with thirty (30) days&rsquo; written notice. <span class="clause">&mdash; &sect;8.2</span></p>
+                <div class="compare-card__cites">
+                  <span class="cite">[1] agreement.pdf · p.14</span>
+                  <span class="cite">[2] p.15</span>
+                </div>
+              </aside>
             </div>
           </div>
 
           <svg class="scene__links" aria-hidden="true"></svg>
           <div class="scene__lens" aria-hidden="true"></div>
-
-          <aside class="scene__answer" aria-label="The grounded answer">
-            <span class="mode-chip">Contextual Hybrid</span>
-            <p>Either party may terminate with thirty (30) days&rsquo; written notice. <span class="clause">&mdash; &sect;8.2</span></p>
-            <div class="compare-card__cites">
-              <span class="cite">[1] agreement.pdf · p.14</span>
-              <span class="cite">[2] p.15</span>
-            </div>
-          </aside>
         </div>
 
-        <p class="scene__note">As you scroll, the lens sweeps the document: each matched term stays lit, connections
-        draw between them, and the answer surfaces only once its evidence exists. Every retrieval
-        mode is a different strategy for exactly this sweep.</p>
+        <p class="scene__note">Nothing is invented: the answer is assembled from the highlighted
+        passages, and every retrieval mode is a different way of choosing them.</p>
       </div>
     </section>
 
@@ -246,7 +285,7 @@
       </p>
 
       <div class="card-grid">
-        <article class="card reveal reveal--focus lockon">
+        <article class="card reveal reveal--focus lockon" style="--ri:0">
           <div class="card__icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/>
@@ -257,7 +296,7 @@
           <p>Six retrieval strategies in a picker. Re-ask the same question under another mode and compare the citations.</p>
         </article>
 
-        <article class="card reveal reveal--focus lockon" style="--rd:.07s">
+        <article class="card reveal reveal--focus lockon" style="--rd:.07s;--ri:1">
           <div class="card__icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>
@@ -267,7 +306,7 @@
           <p>Character, sentence, paragraph or page chunking — with size and overlap — set on each upload, not per install.</p>
         </article>
 
-        <article class="card reveal reveal--focus lockon" style="--rd:.14s">
+        <article class="card reveal reveal--focus lockon" style="--rd:.14s;--ri:2">
           <div class="card__icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h.01M11 15h6M7 9h10"/>
@@ -277,7 +316,7 @@
           <p>Eleven providers behind one picker, from Groq's free tier to a fully local Ollama. With no key at all, answers are extractive and still cited.</p>
         </article>
 
-        <article class="card reveal reveal--focus lockon" style="--rd:.21s">
+        <article class="card reveal reveal--focus lockon" style="--rd:.21s;--ri:3">
           <div class="card__icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M8 11h6M11 8v6"/>
@@ -311,7 +350,7 @@
         Trying two RAG designs normally means building two RAG systems.
       </p>
 
-      <p>
+      <p class="read-sweep">
         Each variant wants its own chunker, retriever, provider SDK and glue — so most teams build
         one pipeline, ship it, and never learn what a different design would have answered.
         Nexarag collapses the comparison into configuration: modes are a dropdown, chunking is an
@@ -344,14 +383,22 @@
         retrieval, and MySQL holding everything — chunks, terms, vectors, graph, jobs and history.
       </p>
 
-      <h3 id="architecture">Architecture</h3>
-
       <!-- The second scroll-driven set piece. Every group carries its own --t0:
            the beat of the scrub at which it resolves. Nodes come band by band in
            pipeline order, and an edge starts only once its source box exists —
-           so the diagram explains itself in the order data actually moves. -->
+           so the diagram explains itself in the order data actually moves.
+
+           The heading lives INSIDE the sticky block on purpose: while the figure
+           is pinned it is the only thing on screen, and a pinned diagram with its
+           title scrolled away reads as a broken panel rather than a build. -->
       <div class="arch" id="architecture-scene">
       <div class="arch__sticky">
+      <div class="arch__head">
+        <h3 id="architecture">Architecture</h3>
+        <p class="arch__hint">The diagram builds as you scroll, in the order a question actually
+          travels. Hover any box to trace one hop out from it.</p>
+        <div class="arch__meter" aria-hidden="true"><span></span></div>
+      </div>
       <figure class="diagram">
         <svg viewBox="0 0 980 620" role="img" aria-labelledby="diagram-title diagram-desc">
           <title id="diagram-title">Nexarag architecture</title>
@@ -376,107 +423,124 @@
           </defs>
 
           <!-- band: browser -->
-          <text class="d-stage d-band" style="--t0:0" x="30" y="28">BROWSER</text>
+          <g class="d-band" style="--t0:0">
+            <text class="d-stage" x="30" y="28">BROWSER</text>
+            <line class="d-tier" x1="108" y1="24" x2="950" y2="24"/>
+          </g>
 
           <g class="d-node" data-node="spa" style="--t0:.02">
             <rect class="d-surface-accent" x="30" y="42" width="420" height="86" rx="12"/>
+            <rect class="d-accent" x="31.5" y="56" width="3" height="58" rx="1.5"/>
             <text class="d-label" x="50" y="74">React 19 SPA</text>
-            <text class="d-sub" x="50" y="96">chat · evidence panel · knowledge bases · tasks</text>
-            <text class="d-sub" x="50" y="114">streams answers · renders cited PDF pages</text>
+            <text class="d-sub" x="50" y="97">chat · evidence panel · knowledge bases · tasks</text>
+            <text class="d-sub" x="50" y="116">streams answers · renders cited PDF pages</text>
           </g>
 
-          <g class="d-node" data-node="nginx" style="--t0:.07">
+          <g class="d-node" data-node="nginx" style="--t0:.06">
             <rect class="d-surface" x="530" y="42" width="420" height="86" rx="12"/>
+            <rect class="d-accent d-accent--mute" x="531.5" y="56" width="3" height="58" rx="1.5"/>
             <text class="d-label" x="550" y="74">nginx</text>
-            <text class="d-sub" x="550" y="96">serves the bundle · proxies /api (prefix stripped)</text>
-            <text class="d-sub" x="550" y="114">upgrades /chat/ws · streaming unbuffered</text>
+            <text class="d-sub" x="550" y="97">serves the bundle · proxies /api (prefix stripped)</text>
+            <text class="d-sub" x="550" y="116">upgrades /chat/ws · streaming unbuffered</text>
           </g>
 
-          <g class="d-flow" data-from="spa" data-to="nginx" style="--t0:.12">
+          <g class="d-flow" data-from="spa" data-to="nginx" style="--t0:.10">
             <path pathLength="1" class="d-edge-strong d-draw" d="M450 85h80" marker-end="url(#arrow-strong)"/>
             <path class="d-packet" d="M450 85h80"/>
           </g>
 
           <!-- nginx proxies everything to FastAPI -->
-          <g class="d-flow" data-from="nginx" data-to="api" style="--t0:.18">
+          <g class="d-flow" data-from="nginx" data-to="api" style="--t0:.14">
             <path pathLength="1" class="d-edge-strong d-draw" d="M740 128v26H170v46" marker-end="url(#arrow-strong)"/>
             <path class="d-packet" d="M740 128v26H170v46"/>
-            <text class="d-sub" x="420" y="148">REST · /chat/ws</text>
+            <text class="d-sub" x="420" y="149">REST · /chat/ws</text>
           </g>
 
           <!-- band: services -->
-          <text class="d-stage d-band" style="--t0:.21" x="30" y="192">SERVICES</text>
+          <g class="d-band" style="--t0:.18">
+            <text class="d-stage" x="30" y="192">SERVICES</text>
+            <line class="d-tier" x1="112" y1="188" x2="950" y2="188"/>
+          </g>
 
-          <g class="d-node" data-node="api" style="--t0:.24">
+          <g class="d-node" data-node="api" style="--t0:.21">
             <rect class="d-surface-accent" x="30" y="206" width="280" height="104" rx="12"/>
+            <rect class="d-accent" x="31.5" y="220" width="3" height="76" rx="1.5"/>
             <text class="d-label" x="50" y="238">FastAPI</text>
-            <text class="d-sub" x="50" y="260">JWT sessions · role-based access</text>
-            <text class="d-sub" x="50" y="278">chat over WebSocket + HTTP fallback</text>
-            <text class="d-sub" x="50" y="296">uploads answered 202 → job queued</text>
+            <text class="d-sub" x="50" y="261">JWT sessions · role-based access</text>
+            <text class="d-sub" x="50" y="280">WebSocket chat · HTTP fallback</text>
+            <text class="d-sub" x="50" y="299">uploads answered 202 → queued</text>
           </g>
 
-          <g class="d-node" data-node="rag" style="--t0:.30">
+          <g class="d-node" data-node="rag" style="--t0:.25">
             <rect class="d-surface-accent" x="350" y="206" width="280" height="104" rx="12"/>
+            <rect class="d-accent" x="351.5" y="220" width="3" height="76" rx="1.5"/>
             <text class="d-label" x="370" y="238">RAG engine</text>
-            <text class="d-sub" x="370" y="260">6 modes · lexical scoring + optional</text>
-            <text class="d-sub" x="370" y="278">embedding blend · evidence gate</text>
-            <text class="d-sub" x="370" y="296">citations with page + char spans</text>
+            <text class="d-sub" x="370" y="261">6 modes · lexical scoring</text>
+            <text class="d-sub" x="370" y="280">optional embedding blend</text>
+            <text class="d-sub" x="370" y="299">evidence gate · citations</text>
           </g>
 
-          <g class="d-node" data-node="worker" style="--t0:.36">
+          <g class="d-node" data-node="worker" style="--t0:.29">
             <rect class="d-surface-accent" x="670" y="206" width="280" height="104" rx="12"/>
+            <rect class="d-accent" x="671.5" y="220" width="3" height="76" rx="1.5"/>
             <text class="d-label" x="690" y="238">Indexing worker</text>
-            <text class="d-sub" x="690" y="260">in-process loop · claims queued jobs</text>
-            <text class="d-sub" x="690" y="278">per-document chunking · embeddings</text>
-            <text class="d-sub" x="690" y="296">entity graph · live progress · cancel</text>
+            <text class="d-sub" x="690" y="261">in-process loop · no broker</text>
+            <text class="d-sub" x="690" y="280">per-doc chunking · embeddings</text>
+            <text class="d-sub" x="690" y="299">entity graph · cancellable</text>
           </g>
 
-          <g class="d-flow" data-from="api" data-to="rag" style="--t0:.42">
+          <g class="d-flow" data-from="api" data-to="rag" style="--t0:.33">
             <path pathLength="1" class="d-edge-strong d-draw" d="M310 258h40" marker-end="url(#arrow-strong)"/>
             <path class="d-packet" d="M310 258h40"/>
           </g>
 
           <!-- band: data & models -->
-          <text class="d-stage d-band" style="--t0:.45" x="30" y="424">DATA &amp; MODELS</text>
+          <g class="d-band" style="--t0:.37">
+            <text class="d-stage" x="30" y="424">DATA &amp; MODELS</text>
+            <line class="d-tier" x1="158" y1="420" x2="950" y2="420"/>
+          </g>
 
-          <g class="d-node" data-node="uploads" style="--t0:.48">
+          <g class="d-node" data-node="uploads" style="--t0:.40">
             <rect class="d-surface" x="30" y="440" width="280" height="104" rx="12"/>
+            <rect class="d-accent d-accent--mute" x="31.5" y="454" width="3" height="76" rx="1.5"/>
             <text class="d-label" x="50" y="472">Uploads volume</text>
-            <text class="d-sub" x="50" y="494">original files on disk</text>
-            <text class="d-sub" x="50" y="512">served for the evidence panel</text>
-            <text class="d-sub" x="50" y="530">content type from extension</text>
+            <text class="d-sub" x="50" y="495">original files on disk</text>
+            <text class="d-sub" x="50" y="514">served to the evidence panel</text>
+            <text class="d-sub" x="50" y="533">content type from extension</text>
           </g>
 
-          <g class="d-node" data-node="llm" style="--t0:.53">
+          <g class="d-node" data-node="llm" style="--t0:.44">
             <rect class="d-surface" x="350" y="440" width="280" height="104" rx="12"/>
+            <rect class="d-accent d-accent--mute" x="351.5" y="454" width="3" height="76" rx="1.5"/>
             <text class="d-label" x="370" y="472">LLM providers — 11</text>
-            <text class="d-sub" x="370" y="494">one stdlib HTTP seam · no SDKs</text>
-            <text class="d-sub" x="370" y="512">keys encrypted · Ollama = local</text>
-            <text class="d-sub" x="370" y="530">called only when you add one</text>
+            <text class="d-sub" x="370" y="495">one stdlib HTTP seam · no SDKs</text>
+            <text class="d-sub" x="370" y="514">keys encrypted · Ollama = local</text>
+            <text class="d-sub" x="370" y="533">called only when you add one</text>
           </g>
 
-          <g class="d-node" data-node="mysql" style="--t0:.58">
+          <g class="d-node" data-node="mysql" style="--t0:.48">
             <rect class="d-surface" x="670" y="440" width="280" height="104" rx="12"/>
+            <rect class="d-accent d-accent--mute" x="671.5" y="454" width="3" height="76" rx="1.5"/>
             <text class="d-label" x="690" y="472">MySQL</text>
-            <text class="d-sub" x="690" y="494">chunks · term index · vectors</text>
-            <text class="d-sub" x="690" y="512">entity graph · ingestion jobs</text>
-            <text class="d-sub" x="690" y="530">users · roles · chat history</text>
+            <text class="d-sub" x="690" y="495">chunks · term index · vectors</text>
+            <text class="d-sub" x="690" y="514">entity graph · ingestion jobs</text>
+            <text class="d-sub" x="690" y="533">users · roles · chat history</text>
           </g>
 
           <!-- flows into the data band -->
-          <g class="d-flow" data-from="api" data-to="uploads" style="--t0:.62">
+          <g class="d-flow" data-from="api" data-to="uploads" style="--t0:.52">
             <path pathLength="1" class="d-edge d-draw" d="M170 310v130" marker-end="url(#arrow)"/>
             <path class="d-packet" d="M170 310v130"/>
             <text class="d-sub" x="182" y="384">stores + serves originals</text>
           </g>
 
-          <g class="d-flow" data-from="rag" data-to="llm" style="--t0:.67">
+          <g class="d-flow" data-from="rag" data-to="llm" style="--t0:.56">
             <path pathLength="1" class="d-edge d-draw" d="M470 310v130" marker-end="url(#arrow)"/>
             <path class="d-packet" d="M470 310v130"/>
             <text class="d-sub" x="482" y="384">synthesis — streamed</text>
           </g>
 
-          <g class="d-flow" data-from="worker" data-to="mysql" style="--t0:.72">
+          <g class="d-flow" data-from="worker" data-to="mysql" style="--t0:.60">
             <path pathLength="1" class="d-edge d-draw" d="M810 310v130" marker-end="url(#arrow)"/>
             <path class="d-packet" d="M810 310v130"/>
             <text class="d-sub" x="822" y="378">claims jobs</text>
@@ -484,16 +548,16 @@
           </g>
 
           <!-- the RAG engine reads what the worker wrote -->
-          <g class="d-flow" data-from="rag" data-to="mysql" style="--t0:.77">
+          <g class="d-flow" data-from="rag" data-to="mysql" style="--t0:.64">
             <path pathLength="1" class="d-edge d-draw" d="M600 310c0 70 105 55 105 130" marker-end="url(#arrow)"/>
             <path class="d-packet" d="M600 310c0 70 105 55 105 130"/>
             <text class="d-sub" x="596" y="416">reads chunks · terms · graph</text>
           </g>
 
           <!-- boundary -->
-          <g class="d-band" style="--t0:.84">
+          <g class="d-band" style="--t0:.70">
             <rect x="14" y="10" width="952" height="560" rx="18" fill="none" stroke-dasharray="5 5" class="d-edge"/>
-            <text class="d-sub" x="14" y="596">docker compose up — the stack runs on your machine. Document text leaves it only for a provider you chose.</text>
+            <text class="d-sub" x="14" y="597">docker compose up — the stack runs on your machine. Document text leaves it only for a provider you chose.</text>
           </g>
         </svg>
         <figcaption>
@@ -618,11 +682,11 @@ make setup      # clones the SPA beside it, writes .env, builds, starts
       </div>
 
       <h3 id="first-question">First question</h3>
-      <ol>
-        <li>Create a knowledge base and upload a PDF. Chunking strategy, size and embeddings are set per document on the upload form.</li>
-        <li>Watch it index on the tasks screen — per-document progress, honest outcomes, cancellable.</li>
-        <li>Ask a question in chat. Then switch the retrieval mode in the context bar and ask again.</li>
-        <li>Open a citation. The page renders with the passage highlighted — that's the evidence the answer stood on.</li>
+      <ol class="walk">
+        <li style="--li:0">Create a knowledge base and upload a PDF. Chunking strategy, size and embeddings are set per document on the upload form.</li>
+        <li style="--li:1">Watch it index on the tasks screen — per-document progress, honest outcomes, cancellable.</li>
+        <li style="--li:2">Ask a question in chat. Then switch the retrieval mode in the context bar and ask again.</li>
+        <li style="--li:3">Open a citation. The page renders with the passage highlighted — that's the evidence the answer stood on.</li>
       </ol>
 
       <div class="callout callout--note reveal">
@@ -673,40 +737,40 @@ ollama pull nomic-embed-text   # per-document embeddings</code></pre>
       <div class="stack-group reveal reveal--results">
         <p class="stack-group__title">Backend</p>
         <div class="stack-grid">
-          <div class="stack-item lockon"><p class="stack-item__name">FastAPI <code>+ SQLAlchemy 2</code></p><p class="stack-item__role">55+ endpoints; explicit sessions, controller-owned transactions</p></div>
-          <div class="stack-item lockon"><p class="stack-item__name">MySQL 8 <code>+ Alembic</code></p><p class="stack-item__role">Chunks, term index, vectors, entity graph, jobs — one store</p></div>
-          <div class="stack-item lockon"><p class="stack-item__name">pypdf <code>+ stdlib zipfile</code></p><p class="stack-item__role">PDF via pypdf; DOCX and XLSX via the stdlib — nothing heavier</p></div>
-          <div class="stack-item lockon"><p class="stack-item__name">PyJWT + bcrypt</p><p class="stack-item__role">Sessions, refresh rotation, role-based permissions</p></div>
+          <div class="stack-item lockon" style="--ri:0"><p class="stack-item__name">FastAPI <code>+ SQLAlchemy 2</code></p><p class="stack-item__role">55+ endpoints; explicit sessions, controller-owned transactions</p></div>
+          <div class="stack-item lockon" style="--ri:1"><p class="stack-item__name">MySQL 8 <code>+ Alembic</code></p><p class="stack-item__role">Chunks, term index, vectors, entity graph, jobs — one store</p></div>
+          <div class="stack-item lockon" style="--ri:2"><p class="stack-item__name">pypdf <code>+ stdlib zipfile</code></p><p class="stack-item__role">PDF via pypdf; DOCX and XLSX via the stdlib — nothing heavier</p></div>
+          <div class="stack-item lockon" style="--ri:3"><p class="stack-item__name">PyJWT + bcrypt</p><p class="stack-item__role">Sessions, refresh rotation, role-based permissions</p></div>
         </div>
       </div>
 
       <div class="stack-group reveal reveal--results">
         <p class="stack-group__title">LLM layer</p>
         <div class="stack-grid">
-          <div class="stack-item lockon"><p class="stack-item__name">11 providers, 4 wire protocols</p><p class="stack-item__role">OpenAI, Anthropic, Gemini, Groq, Ollama, OpenRouter, Mistral, Cerebras, Cloudflare, SambaNova, Z.ai</p></div>
-          <div class="stack-item lockon"><p class="stack-item__name">stdlib <code>urllib</code> only</p><p class="stack-item__role">One HTTP seam, retry with backoff, streamed replies — no SDKs</p></div>
-          <div class="stack-item lockon"><p class="stack-item__name">Fernet encryption</p><p class="stack-item__role">Provider keys encrypted at rest, returned only masked</p></div>
-          <div class="stack-item lockon"><p class="stack-item__name">4 embedding providers</p><p class="stack-item__role">Ollama, OpenAI, Gemini, Mistral — chosen per document</p></div>
+          <div class="stack-item lockon" style="--ri:0"><p class="stack-item__name">11 providers, 4 wire protocols</p><p class="stack-item__role">OpenAI, Anthropic, Gemini, Groq, Ollama, OpenRouter, Mistral, Cerebras, Cloudflare, SambaNova, Z.ai</p></div>
+          <div class="stack-item lockon" style="--ri:1"><p class="stack-item__name">stdlib <code>urllib</code> only</p><p class="stack-item__role">One HTTP seam, retry with backoff, streamed replies — no SDKs</p></div>
+          <div class="stack-item lockon" style="--ri:2"><p class="stack-item__name">Fernet encryption</p><p class="stack-item__role">Provider keys encrypted at rest, returned only masked</p></div>
+          <div class="stack-item lockon" style="--ri:3"><p class="stack-item__name">4 embedding providers</p><p class="stack-item__role">Ollama, OpenAI, Gemini, Mistral — chosen per document</p></div>
         </div>
       </div>
 
       <div class="stack-group reveal reveal--results">
         <p class="stack-group__title">Frontend</p>
         <div class="stack-grid">
-          <div class="stack-item lockon"><p class="stack-item__name">React 19 <code>+ Vite</code></p><p class="stack-item__role">Route-split SPA; Redux Toolkit state; typed API client</p></div>
-          <div class="stack-item lockon"><p class="stack-item__name">Tailwind v4 <code>+ shadcn/ui</code></p><p class="stack-item__role">Token-driven theming — ten themes, light and dark</p></div>
-          <div class="stack-item lockon"><p class="stack-item__name">pdf.js <code>lazy</code></p><p class="stack-item__role">Evidence panel renders cited pages with client-side highlights</p></div>
-          <div class="stack-item lockon"><p class="stack-item__name">WebSocket chat</p><p class="stack-item__role">Typed frames — stage, citations, deltas — with HTTP fallback</p></div>
+          <div class="stack-item lockon" style="--ri:0"><p class="stack-item__name">React 19 <code>+ Vite</code></p><p class="stack-item__role">Route-split SPA; Redux Toolkit state; typed API client</p></div>
+          <div class="stack-item lockon" style="--ri:1"><p class="stack-item__name">Tailwind v4 <code>+ shadcn/ui</code></p><p class="stack-item__role">Token-driven theming — ten themes, light and dark</p></div>
+          <div class="stack-item lockon" style="--ri:2"><p class="stack-item__name">pdf.js <code>lazy</code></p><p class="stack-item__role">Evidence panel renders cited pages with client-side highlights</p></div>
+          <div class="stack-item lockon" style="--ri:3"><p class="stack-item__name">WebSocket chat</p><p class="stack-item__role">Typed frames — stage, citations, deltas — with HTTP fallback</p></div>
         </div>
       </div>
 
       <div class="stack-group reveal reveal--results">
         <p class="stack-group__title">Infrastructure &amp; testing</p>
         <div class="stack-grid">
-          <div class="stack-item lockon"><p class="stack-item__name">Docker Compose</p><p class="stack-item__role">MySQL + API + SPA-behind-nginx; <code>make setup</code> from zero</p></div>
-          <div class="stack-item lockon"><p class="stack-item__name">No broker, by design</p><p class="stack-item__role">Background indexing via a jobs table and conditional claims</p></div>
-          <div class="stack-item lockon"><p class="stack-item__name">850+ backend tests</p><p class="stack-item__role">pytest — hermetic by default, plus a live-stack suite</p></div>
-          <div class="stack-item lockon"><p class="stack-item__name">800 frontend tests</p><p class="stack-item__role">Vitest + Testing Library + MSW; Playwright end-to-end</p></div>
+          <div class="stack-item lockon" style="--ri:0"><p class="stack-item__name">Docker Compose</p><p class="stack-item__role">MySQL + API + SPA-behind-nginx; <code>make setup</code> from zero</p></div>
+          <div class="stack-item lockon" style="--ri:1"><p class="stack-item__name">No broker, by design</p><p class="stack-item__role">Background indexing via a jobs table and conditional claims</p></div>
+          <div class="stack-item lockon" style="--ri:2"><p class="stack-item__name">850+ backend tests</p><p class="stack-item__role">pytest — hermetic by default, plus a live-stack suite</p></div>
+          <div class="stack-item lockon" style="--ri:3"><p class="stack-item__name">800 frontend tests</p><p class="stack-item__role">Vitest + Testing Library + MSW; Playwright end-to-end</p></div>
         </div>
       </div>
     </section>

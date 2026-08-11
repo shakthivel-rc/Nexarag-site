@@ -117,8 +117,15 @@ textarea {
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
     "Liberation Mono", monospace;
 
-  --content-max: 1220px;
-  --sidebar-w: 15rem;
+  /* Body copy is fluid: 17px on a phone, 18.4px on a desktop. The whole scale
+     is expressed in rem so it stays anchored to the reader's own root size —
+     someone who has raised their browser's default font gets a larger page,
+     which is the one accessibility behaviour a landing page most often breaks. */
+  --fs-body: clamp(1.0625rem, 1rem + 0.22vw, 1.15rem);
+  --measure: 48rem;
+
+  --content-max: 1280px;
+  --sidebar-w: 15.5rem;
   --header-h: 3.75rem;
 }
 
@@ -204,8 +211,8 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
-  font-size: 1rem;
-  line-height: 1.65;
+  font-size: var(--fs-body);
+  line-height: 1.62;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -344,7 +351,7 @@ code {
   align-items: center;
   gap: 0.55rem;
   font-weight: 700;
-  font-size: 1.02rem;
+  font-size: 1.08rem;
   letter-spacing: -0.02em;
   color: var(--text);
   text-decoration: none;
@@ -376,7 +383,7 @@ code {
 .nav-links a {
   color: var(--text-muted);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.955rem;
   font-weight: 530;
   padding: 0.4rem 0.7rem;
   border-radius: var(--radius-sm);
@@ -474,9 +481,13 @@ code {
   animation-delay: -13s;
 }
 
+/* Translate only, and via the `translate` property rather than `transform`.
+   Scaling a blur(70px) surface re-rasterizes it every frame — that was the one
+   place on the page still dropping frames under a throttled CPU. Moving an
+   already-blurred layer is compositor work. */
 @keyframes orb-drift {
-  from { transform: translate3d(0, 0, 0) scale(1); }
-  to   { transform: translate3d(3rem, 2rem, 0) scale(1.12); }
+  from { translate: 0 0; }
+  to   { translate: 3.5rem 2.5rem; }
 }
 
 .hero__inner {
@@ -499,7 +510,7 @@ code {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.76rem;
+  font-size: 0.82rem;
   font-weight: 640;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -512,7 +523,7 @@ code {
 }
 
 .hero h1 {
-  font-size: clamp(2.5rem, 6.4vw, 4.1rem);
+  font-size: clamp(2.6rem, 6.6vw, 4.35rem);
   letter-spacing: -0.042em;
   line-height: 1.04;
   margin-bottom: 1.25rem;
@@ -527,7 +538,7 @@ code {
 }
 
 .hero__lede {
-  font-size: clamp(1.04rem, 1.9vw, 1.18rem);
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
   color: var(--text-muted);
   max-width: 38rem;
   margin-bottom: 2rem;
@@ -547,7 +558,7 @@ code {
   padding: 0.72rem 1.25rem;
   border-radius: var(--radius);
   font-weight: 620;
-  font-size: 0.95rem;
+  font-size: 1.005rem;
   text-decoration: none;
   border: 1px solid transparent;
   cursor: pointer;
@@ -594,7 +605,7 @@ code {
 }
 
 .fact__value {
-  font-size: 1.65rem;
+  font-size: 1.95rem;
   font-weight: 720;
   letter-spacing: -0.03em;
   color: var(--text);
@@ -606,7 +617,7 @@ code {
 }
 
 .fact__label {
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   color: var(--text-faint);
 }
 
@@ -623,7 +634,7 @@ code {
 
 .compare__q {
   font-weight: 660;
-  font-size: 1.02rem;
+  font-size: 1.1rem;
   margin-bottom: 1rem;
   letter-spacing: -0.01em;
 }
@@ -661,7 +672,7 @@ code {
 }
 
 .compare-card p {
-  font-size: 0.88rem;
+  font-size: 0.955rem;
   color: var(--text-muted);
   line-height: 1.55;
 }
@@ -669,7 +680,7 @@ code {
 .mode-chip {
   align-self: flex-start;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.765rem;
   font-weight: 640;
   letter-spacing: 0.02em;
   color: var(--primary);
@@ -694,7 +705,7 @@ code {
 
 .cite {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   color: var(--text-faint);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -704,7 +715,7 @@ code {
 
 .compare__note {
   margin-top: 1rem;
-  font-size: 0.82rem;
+  font-size: 0.89rem;
   color: var(--text-faint);
   text-align: center;
 }
@@ -767,7 +778,7 @@ code {
 }
 
 .sidebar__heading {
-  font-size: 0.74rem;
+  font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -788,7 +799,7 @@ code {
   border-left: 2px solid transparent;
   color: var(--text-muted);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.96rem;
   line-height: 1.45;
   transition: color 0.15s ease, border-color 0.15s ease;
 }
@@ -810,7 +821,7 @@ code {
 
 .toc__sub a {
   padding-left: 1.65rem;
-  font-size: 0.85rem;
+  font-size: 0.905rem;
   color: var(--text-faint);
 }
 
@@ -851,7 +862,7 @@ code {
   align-items: center;
   gap: 0.75rem;
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.865rem;
   font-weight: 640;
   color: var(--primary);
   letter-spacing: 0.06em;
@@ -866,33 +877,33 @@ code {
 }
 
 .section > h2 {
-  font-size: clamp(1.8rem, 3.8vw, 2.5rem);
+  font-size: clamp(1.95rem, 4vw, 2.7rem);
   letter-spacing: -0.035em;
   margin: 0.4rem 0 0.8rem;
   scroll-margin-top: 5rem;
 }
 
 .section__lede {
-  font-size: clamp(1.04rem, 1.8vw, 1.16rem);
+  font-size: clamp(1.09rem, 1.9vw, 1.26rem);
   color: var(--text-muted);
-  max-width: 46rem;
+  max-width: var(--measure);
   margin-bottom: 2rem;
 }
 
 .content h3 {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   margin: 2.5rem 0 0.8rem;
   scroll-margin-top: 5rem;
 }
 
 .content p {
-  max-width: 46rem;
+  max-width: var(--measure);
   margin-bottom: 1rem;
 }
 
 .content ul,
 .content ol {
-  max-width: 46rem;
+  max-width: var(--measure);
   margin: 0 0 1.15rem;
   padding-left: 1.2rem;
 }
@@ -915,8 +926,16 @@ code {
 .card-grid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(15.5rem, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   margin: 1.75rem 0 2.5rem;
+}
+
+/* Two by two, never three-and-an-orphan: auto-fit picked three columns at this
+   content width and left the fourth card alone on a second row. */
+@media (min-width: 620px) {
+  .card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .card {
@@ -952,12 +971,12 @@ code {
 }
 
 .card h3 {
-  font-size: 1.04rem;
+  font-size: 1.14rem;
   margin: 0 0 0.4rem;
 }
 
 .card p {
-  font-size: 0.92rem;
+  font-size: 1rem;
   color: var(--text-muted);
   margin: 0;
 }
@@ -988,7 +1007,7 @@ code {
 .mode__name {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.845rem;
   font-weight: 660;
   color: var(--accent);
   background: var(--accent-subtle);
@@ -998,7 +1017,7 @@ code {
 }
 
 .mode p {
-  font-size: 0.88rem;
+  font-size: 0.96rem;
   color: var(--text-muted);
   margin: 0;
 }
@@ -1013,7 +1032,7 @@ code {
   border: 1px solid var(--border);
   background: var(--bg-subtle);
   margin: 1.5rem 0;
-  max-width: 46rem;
+  max-width: var(--measure);
 }
 
 .callout svg {
@@ -1025,7 +1044,7 @@ code {
 
 .callout p {
   margin: 0;
-  font-size: 0.93rem;
+  font-size: 1.01rem;
 }
 
 .callout p + p {
@@ -1062,13 +1081,13 @@ code {
   border-radius: var(--radius);
   margin: 1.5rem 0 2rem;
   background: var(--surface);
-  max-width: 46rem;
+  max-width: var(--measure);
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.92rem;
+  font-size: 1rem;
   min-width: 28rem;
 }
 
@@ -1083,7 +1102,7 @@ td {
 thead th {
   background: var(--bg-subtle);
   font-weight: 660;
-  font-size: 0.8rem;
+  font-size: 0.845rem;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -1100,7 +1119,7 @@ tbody tr:last-child td {
   list-style: none;
   padding: 0;
   margin: 1.75rem 0 1rem;
-  max-width: 46rem;
+  max-width: var(--measure);
   /* Segments between the four badges, and how far the reader has driven the
      pipeline. The scrub writes --fill; 1 is the resting default, so no-JS and
      reduced motion get a fully travelled rail. */
@@ -1127,7 +1146,7 @@ tbody tr:last-child td {
   border-radius: 999px;
   background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 65%, var(--accent)));
   color: var(--primary-contrast);
-  font-size: 0.88rem;
+  font-size: 0.95rem;
   font-weight: 680;
   font-family: var(--font-mono);
   box-shadow: 0 3px 10px color-mix(in srgb, var(--primary) 30%, transparent);
@@ -1180,7 +1199,7 @@ tbody tr:last-child td {
   align-items: center;
   gap: 0.5rem;
   margin: 0.25rem 0 0.4rem;
-  font-size: 1.08rem;
+  font-size: 1.18rem;
 }
 
 .step__glyph {
@@ -1216,27 +1235,71 @@ tbody tr:last-child td {
 
 .diagram figcaption {
   margin-top: 1rem;
-  font-size: 0.86rem;
+  font-size: 0.94rem;
   color: var(--text-faint);
   text-align: center;
 }
 
-.d-surface { fill: var(--bg-subtle); stroke: var(--border-strong); }
-.d-surface-accent { fill: var(--primary-subtle); stroke: color-mix(in srgb, var(--primary) 40%, transparent); }
-.d-label { fill: var(--text); font-family: var(--font-sans); font-size: 14px; font-weight: 650; }
-.d-sub { fill: var(--text-muted); font-family: var(--font-mono); font-size: 10.5px; }
-.d-stage { fill: var(--primary); font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; }
+/* Diagram palette. The old one put pale lilac boxes (--primary-subtle, #eef0fe)
+   on a white card with 10.5px mono captions: on the light theme the whole figure
+   read as washed out, and the two box kinds were barely distinguishable. Now the
+   surface is the card's own with a tinted wash, the border carries the weight,
+   and each box gets a coloured edge bar — a service tier is legible at a glance
+   from the bar alone, in either theme. */
+.d-surface {
+  fill: var(--bg-subtle);
+  stroke: var(--border-strong);
+  stroke-width: 1.2;
+}
+
+.d-surface-accent {
+  fill: color-mix(in srgb, var(--primary) 7%, var(--surface));
+  stroke: color-mix(in srgb, var(--primary) 42%, transparent);
+  stroke-width: 1.4;
+}
+
+.d-accent { fill: var(--primary); }
+.d-accent--mute { fill: var(--text-faint); }
+
+.d-label { fill: var(--text); font-family: var(--font-sans); font-size: 16px; font-weight: 660; }
+.d-sub { fill: var(--text-muted); font-family: var(--font-mono); font-size: 12px; }
+
+.d-stage {
+  fill: var(--primary);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+/* A hairline per tier, so BROWSER / SERVICES / DATA read as bands rather than as
+   three loose words. */
+.d-tier {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
 .d-edge { stroke: var(--border-strong); stroke-width: 1.6; fill: none; }
-.d-edge-strong { stroke: var(--primary); stroke-width: 1.8; fill: none; }
+.d-edge-strong { stroke: var(--primary); stroke-width: 1.9; fill: none; }
 .d-arrow { fill: var(--border-strong); }
 .d-arrow-strong { fill: var(--primary); }
+
+/* Edge captions sit on top of the line they describe. A knockout halo in the
+   card's own colour keeps them readable without a background rect to position
+   and keep in sync by hand. */
+.d-flow .d-sub {
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
 
 /* --- code ----------------------------------------------------------------- */
 
 .code-block {
   position: relative;
   margin: 1.25rem 0 1.75rem;
-  max-width: 46rem;
+  max-width: var(--measure);
 }
 
 .code-block__head {
@@ -1252,7 +1315,7 @@ tbody tr:last-child td {
 
 .code-block__lang {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.785rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--code-muted);
@@ -1264,7 +1327,7 @@ tbody tr:last-child td {
   align-items: center;
   gap: 0.35rem;
   padding: 0.24rem 0.55rem;
-  font-size: 0.76rem;
+  font-size: 0.815rem;
   font-weight: 560;
   border-radius: var(--radius-sm);
   border: 1px solid var(--code-border);
@@ -1302,7 +1365,7 @@ pre {
   border-radius: var(--radius);
   overflow-x: auto;
   font-family: var(--font-mono);
-  font-size: 0.845rem;
+  font-size: 0.925rem;
   line-height: 1.7;
   color: var(--code-text);
   tab-size: 2;
@@ -1336,7 +1399,7 @@ pre code {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  font-size: 0.78rem;
+  font-size: 0.845rem;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -1372,7 +1435,7 @@ pre code {
 
 .stack-item__name {
   font-weight: 640;
-  font-size: 0.94rem;
+  font-size: 1.02rem;
   display: flex;
   align-items: baseline;
   gap: 0.4rem;
@@ -1380,7 +1443,7 @@ pre code {
 }
 
 .stack-item__name code {
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   color: var(--text-faint);
   background: none;
   border: 0;
@@ -1388,7 +1451,7 @@ pre code {
 }
 
 .stack-item__role {
-  font-size: 0.86rem;
+  font-size: 0.94rem;
   color: var(--text-muted);
   margin-top: 0.15rem;
 }
@@ -1410,7 +1473,7 @@ pre code {
   gap: 1.5rem 2.5rem;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.9rem;
+  font-size: 0.965rem;
   color: var(--text-muted);
 }
 
@@ -1437,13 +1500,19 @@ pre code {
    .scene--live, never out of.
    ========================================================================== */
 
-/* --- custom cursor --------------------------------------------------------- */
+/* --- lens cursor -----------------------------------------------------------
+   The ring ACCOMPANIES the real pointer; it never replaces it. The previous
+   version hid the native cursor (`cursor: none`) and drew a white ring under
+   `mix-blend-mode: difference` to stay visible on any background — but the
+   ring's own parent carries `will-change: transform`, which makes it a
+   stacking context, which isolates the blend. Isolated, difference has nothing
+   to blend against and the ring simply stays white: invisible on a light page,
+   with no native pointer left either. Nothing about that failure is visible on
+   a dark theme, which is why it shipped.
 
-.has-lens-cursor,
-.has-lens-cursor a,
-.has-lens-cursor button {
-  cursor: none;
-}
+   So: no blend modes, no hidden pointer. The ring is drawn in theme tokens with
+   a light-coloured halo behind it, which reads on both palettes and cannot be
+   defeated by a stacking context. */
 
 .nx-cursor {
   position: fixed;
@@ -1453,24 +1522,11 @@ pre code {
   transition: opacity 0.25s ease;
 }
 
-.nx-cursor__ring,
-.nx-cursor__dot {
+.nx-cursor__ring {
   position: absolute;
   top: 0;
   left: 0;
   will-change: transform;
-}
-
-.nx-cursor__dot::after {
-  content: "";
-  position: absolute;
-  top: -2.5px;
-  left: -2.5px;
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: #fff;
-  mix-blend-mode: difference;
 }
 
 .nx-cursor__ring::after {
@@ -1480,9 +1536,13 @@ pre code {
   left: -19px;
   width: 38px;
   height: 38px;
-  border: 1.5px solid #fff;
+  border: 1.5px solid color-mix(in srgb, var(--primary) 70%, transparent);
   border-radius: 999px;
-  mix-blend-mode: difference;
+  /* Two rings: the outer one is the page's own background, so the lens keeps a
+     readable edge over a code block, a dark diagram or a white card alike. */
+  box-shadow:
+    0 0 0 1.5px color-mix(in srgb, var(--bg) 55%, transparent),
+    inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
   transition:
     transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1),
     border-radius 0.3s cubic-bezier(0.2, 0.7, 0.2, 1),
@@ -1492,8 +1552,7 @@ pre code {
 /* Crosshair ticks — visible only while scanning the retrieval scene. */
 .nx-cursor__ring i {
   position: absolute;
-  background: #fff;
-  mix-blend-mode: difference;
+  background: var(--primary);
   opacity: 0;
   transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
@@ -1507,6 +1566,7 @@ pre code {
 .cur-engage .nx-cursor__ring::after {
   transform: scale(1.25);
   border-radius: 10px;
+  border-color: var(--primary);
 }
 
 /* Over the document wall the lens widens and shows its crosshair. */
@@ -1547,7 +1607,7 @@ pre code {
   align-items: center;
   gap: 0.5rem;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   letter-spacing: 0.14em;
   color: var(--text-faint);
 }
@@ -1657,13 +1717,29 @@ pre code {
   to   { opacity: 0; transform: translateX(1450%); }
 }
 
-/* --- the retrieval scene --------------------------------------------------- */
+/* --- the retrieval scene ---------------------------------------------------
+   Section 01 has one job: make somebody who has never heard the word
+   "retrieval" understand, in about a second, what this product does with a
+   question. The animation alone did not do that — a lens crawled over blurred
+   legalese while teal lines flew off toward an answer card that had not
+   appeared yet, so the lines pointed at empty space and nothing on screen said
+   what step was happening.
+
+   The layout is therefore explicit rather than atmospheric: the document sits
+   on the left labelled "Your document", the question and the four named beats
+   (Ask · Search · Gather · Answer) sit on the right, and the answer arrives in
+   that column — so every connector ends somewhere the reader can already see.
+   The status strip is written in plain words for the same reason. The scroll
+   position drives which beat is active, so the reader can always name what
+   they are looking at.
+   --------------------------------------------------------------------------- */
 
 .scene {
   position: relative;
 }
 
-/* Default (no JS, reduced motion): a normal section, everything found. */
+/* Default (no JS, reduced motion, narrow or short viewports): a normal section
+   with everything already found. */
 .scene__sticky {
   display: flex;
   flex-direction: column;
@@ -1671,7 +1747,7 @@ pre code {
 }
 
 .scene--live {
-  height: 320vh;
+  height: 300vh;
 }
 
 .scene--live .scene__sticky {
@@ -1680,10 +1756,28 @@ pre code {
   height: calc(100vh - var(--header-h) - 1rem);
 }
 
+.scene__intro {
+  flex: none;
+}
+
+.scene__lede {
+  color: var(--text-muted);
+  font-size: clamp(1.02rem, 1.7vw, 1.14rem);
+  max-width: 44rem;
+  margin: 0;
+}
+
+.scene__lede b {
+  color: var(--text);
+  font-weight: 640;
+}
+
 .scene__stage {
   position: relative;
   flex: 1;
   min-height: 24rem;
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -1694,50 +1788,128 @@ pre code {
   --cr: 0px;
 }
 
-/* HUD strip: status + match counter. Decorative — aria-hidden in markup. */
+/* Status strip. Decorative — aria-hidden in markup — but the words are the
+   plain-language ones on purpose: "Reading your document", not "SCANNING". */
 .scene__hud {
   display: flex;
+  flex: none;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 0.55rem 1rem;
+  gap: 0.75rem;
+  padding: 0.55rem 0.9rem;
   border-bottom: 1px solid var(--border);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
+  font-size: 0.855rem;
   color: var(--text-faint);
   background: var(--bg-subtle);
 }
 
+.scene__hud-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.83rem;
+  color: var(--text-muted);
+}
+
+.scene__hud-file svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: none;
+  color: var(--text-faint);
+}
+
+.scene__hud-phase {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-align: center;
+}
+
+.scene__hud-phase i {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--primary);
+  flex: none;
+}
+
+.scene--live .scene__hud-phase i {
+  animation: hud-pulse 2s ease-in-out infinite;
+}
+
+.scene__hud-count {
+  white-space: nowrap;
+}
+
 .scene__hud b {
   color: var(--accent);
-  font-weight: 640;
-}
-
-.scene__q {
   font-weight: 660;
-  font-size: clamp(1rem, 2vw, 1.15rem);
-  letter-spacing: -0.01em;
-  margin: 0;
+  font-variant-numeric: tabular-nums;
 }
 
-/* The document wall: a dim layer everyone sees, and a sharp layer revealed
-   only inside the lens circle. Identical text; the dim copy is aria-hidden.
-   The blur is STATIC (never animated) — the lens reveal animates clip-path
-   position only, which stays on the compositor. */
+@media (max-width: 720px) {
+  .scene__hud-count {
+    display: none;
+  }
+}
+
+/* Document on the left, the reader's side of the conversation on the right. */
+.scene__body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1rem clamp(0.85rem, 2.2vw, 1.4rem) 1rem;
+}
+
+@media (min-width: 1000px) {
+  .scene__body {
+    grid-template-columns: minmax(0, 1.32fr) minmax(17.5rem, 0.9fr);
+    gap: 1.4rem;
+  }
+}
+
 .doc {
+  position: relative;
+  min-height: 0;
+}
+
+.doc__tag,
+.scene__ask-label {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 640;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 0.45rem;
+}
+
+/* The page itself: a dim layer everyone sees, and a sharp layer revealed only
+   inside the lens circle. Identical text; the dim copy is aria-hidden. The blur
+   is STATIC (never animated) — the reveal animates clip-path position only. */
+.doc__page {
   position: absolute;
-  inset: 2.6rem 0 0 0;
-  padding: 1.5rem clamp(1rem, 4vw, 2.5rem) 1rem;
+  inset: 1.65rem 0 0 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  overflow: hidden;
 }
 
 .doc__dim,
 .doc__sharp {
   position: absolute;
   inset: 0;
-  padding: inherit;
-  font-size: clamp(0.82rem, 1.6vw, 1rem);
-  line-height: 1.85;
+  padding: clamp(0.9rem, 1.8vw, 1.35rem);
+  font-size: clamp(0.9rem, 1.35vw, 1.02rem);
+  line-height: 1.78;
   color: var(--text-muted);
 }
 
@@ -1759,7 +1931,7 @@ pre code {
 
 .doc p {
   max-width: none;
-  margin-bottom: 1em;
+  margin-bottom: 0.9em;
 }
 
 .doc .clause {
@@ -1791,6 +1963,148 @@ pre code {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 35%, transparent);
 }
 
+/* --- the right-hand column: question, beats, answer ----------------------- */
+
+.scene__rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-height: 0;
+}
+
+.scene__ask {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  padding: 0.7rem 0.9rem;
+  flex: none;
+}
+
+.scene__ask .scene__ask-label {
+  margin-bottom: 0.15rem;
+}
+
+.scene__q {
+  font-weight: 620;
+  font-size: clamp(1.05rem, 1.5vw, 1.16rem);
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  margin: 0;
+  max-width: none;
+}
+
+.scene__ask-label--out {
+  color: var(--accent);
+}
+
+/* The stepper. Four columns, each with a progress rule above it: done and current
+   steps carry the accent, so "you are on 2 of 4" is legible without reading a
+   word. This used to be a stacked list in the right-hand column, which pushed the
+   answer card past the bottom of the stage on any viewport shorter than ~1000px —
+   i.e. on most laptops. */
+.scene__beats {
+  flex: none;
+  list-style: none;
+  margin: 0;
+  padding: 0.7rem clamp(0.85rem, 2.2vw, 1.4rem) 0.75rem;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-subtle) 45%, transparent);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  counter-reset: beat;
+}
+
+@media (max-width: 700px) {
+  .scene__beats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 0.8rem;
+  }
+}
+
+.scene__beats li {
+  counter-increment: beat;
+  margin: 0;
+  padding-top: 0.5rem;
+  border-top: 2px solid var(--border);
+  display: grid;
+  grid-template-columns: 1.35rem minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 0.45rem;
+  transition: border-color 0.35s ease;
+}
+
+.scene__beats li::before {
+  content: counter(beat);
+  grid-row: 1;
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  font-family: var(--font-mono);
+  font-size: 0.73rem;
+  font-weight: 660;
+  color: var(--text-faint);
+  transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease;
+}
+
+.scene__beats b {
+  grid-row: 1;
+  font-size: 0.95rem;
+  font-weight: 660;
+  color: var(--text-muted);
+  transition: color 0.35s ease;
+}
+
+.scene__beats span {
+  grid-column: 2;
+  grid-row: 2;
+  font-size: 0.83rem;
+  line-height: 1.35;
+  color: var(--text-faint);
+  margin-top: 0.1rem;
+}
+
+/* Steps already passed keep their rule and their number filled in: the strip
+   reads as progress, not as a highlight jumping between four items. */
+.scene--live .scene__beats li[data-done],
+.scene--live .scene__beats li[data-on] {
+  border-top-color: var(--primary);
+}
+
+.scene--live .scene__beats li[data-done]::before {
+  border-color: color-mix(in srgb, var(--primary) 55%, transparent);
+  color: var(--primary);
+}
+
+.scene--live .scene__beats li[data-on]::before {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-contrast);
+}
+
+.scene--live .scene__beats li[data-on] b {
+  color: var(--text);
+}
+
+.scene--live .scene__beats li[data-on] span {
+  color: var(--text-muted);
+}
+
+/* Not live: every step is simply done. */
+.scene:not(.scene--live) .scene__beats li {
+  border-top-color: color-mix(in srgb, var(--primary) 45%, transparent);
+}
+
+.scene:not(.scene--live) .scene__beats li::before {
+  border-color: color-mix(in srgb, var(--primary) 55%, transparent);
+  color: var(--primary);
+}
+
 .scene__links {
   position: absolute;
   inset: 0;
@@ -1805,11 +2119,21 @@ pre code {
   stroke-width: 1.5;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  opacity: 0.8;
+  opacity: 0.75;
 }
 
 .scene:not(.scene--live) .scene__link {
   stroke-dashoffset: 0;
+}
+
+/* Stacked, the answer sits below the question, so every connector has to cross
+   the question card to reach it — four arcs through a box they have nothing to do
+   with. The highlighted passages and the citations already say where the answer
+   came from, so the lines are simply dropped at this width. */
+@media (max-width: 999px) {
+  .scene__links {
+    display: none;
+  }
 }
 
 /* The travelling lens ring. Pure transform; JS positions it. */
@@ -1827,9 +2151,6 @@ pre code {
   opacity: 1;
   transition: opacity 0.35s ease;
 }
-
-/* The ring, not the clip: past the finale the clip covers the stage, so only
-   the ring needs to bow out. */
 
 .scene__lens::before {
   content: "";
@@ -1857,51 +2178,61 @@ pre code {
   box-shadow: 0 0 0 0 transparent;
 }
 
-/* The surfaced answer. Rises from below once the evidence is assembled. */
+/* The answer. It arrives in the same column as the question — the reader's own
+   side of the exchange — which is what makes the connectors legible: they end
+   on something already on screen. */
 .scene__answer {
-  position: absolute;
-  left: 50%;
-  bottom: 1.1rem;
-  transform: translateX(-50%);
-  width: min(30rem, calc(100% - 2rem));
-  background: var(--surface-raised);
   border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+  border-left: 3px solid var(--accent);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-lg);
-  padding: 0.9rem 1.05rem;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-md);
+  padding: 0.8rem 0.95rem;
+  margin-top: auto;
 }
 
 .scene--live .scene__answer {
   opacity: 0;
-  transform: translateX(-50%) translateY(24px) scale(0.985);
+  transform: translateY(18px) scale(0.99);
   transition:
-    opacity 0.55s ease,
-    transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+    opacity 0.5s ease,
+    transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 .scene--live .scene__answer.surfaced {
   opacity: 1;
-  transform: translateX(-50%) translateY(0) scale(1);
+  transform: none;
 }
 
 .scene__answer p {
   margin: 0 0 0.55rem;
-  font-size: 0.92rem;
+  font-size: 1rem;
 }
 
 .scene__answer .compare-card__cites {
   margin: 0;
 }
 
-/* Static scene — reduced motion and no-JS. The same story as a still:
-   document in focus, matches lit, answer beneath its evidence. */
+.scene__answer-foot {
+  margin: 0.55rem 0 0 !important;
+  font-size: 0.85rem !important;
+  color: var(--text-faint);
+}
+
+/* Static scene — reduced motion, no JS, narrow or short viewports. The same
+   story as a still: document in focus, matches lit, answer beside its
+   evidence, all four beats readable. */
 .scene:not(.scene--live) .scene__stage {
   min-height: 0;
 }
 
-.scene:not(.scene--live) .doc {
+.scene:not(.scene--live) .scene__body {
+  padding: 1.15rem clamp(0.85rem, 2.2vw, 1.4rem) 1.25rem;
+}
+
+.scene:not(.scene--live) .doc__page {
   position: static;
-  padding-top: 1.25rem;
+  inset: auto;
 }
 
 .scene:not(.scene--live) .doc__dim {
@@ -1910,16 +2241,11 @@ pre code {
 
 .scene:not(.scene--live) .doc__sharp {
   position: static;
-  padding: 0;
   background: none;
 }
 
 .scene:not(.scene--live) .scene__answer {
-  position: static;
-  transform: none;
-  width: auto;
-  max-width: 30rem;
-  margin: 1.25rem auto 1.4rem;
+  margin-top: 0;
 }
 
 /* --- lock-on hover brackets ------------------------------------------------ */
@@ -2164,12 +2490,16 @@ pre code {
 
 .arch {
   position: relative;
+  /* Resting default: fully drawn. The scrub arms by writing a smaller value.
+     It lives on the scene rather than on the <svg> so the build meter in the
+     heading inherits the same number — one write, two readers. */
+  --p: 1;
 }
 
 /* Sticky only when JS has measured that the figure actually fits the viewport;
    otherwise the scene stays in normal flow and scrubs as it travels past. */
 .arch--live {
-  height: var(--arch-h, 230vh);
+  height: var(--arch-h, 185vh);
 }
 
 .arch--live .arch__sticky {
@@ -2177,7 +2507,9 @@ pre code {
   top: calc(var(--header-h) + 0.5rem);
   height: calc(100vh - var(--header-h) - 1rem);
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.85rem;
 }
 
 .arch--live .diagram {
@@ -2185,9 +2517,53 @@ pre code {
   margin: 0;
 }
 
-/* Resting default: fully drawn. The scrub arms by writing 0. */
-.diagram svg {
-  --p: 1;
+/* The heading travels with the pinned figure. Pinned without it, the reader saw
+   a full-screen bordered panel building itself with nothing naming what it was. */
+.arch__head {
+  max-width: var(--measure);
+}
+
+.arch--live .arch__head {
+  flex: none;
+}
+
+.arch__head h3 {
+  margin-top: 0;
+}
+
+.arch--live .arch__head h3 {
+  margin-bottom: 0.35rem;
+}
+
+.arch__hint {
+  color: var(--text-muted);
+  font-size: 0.97rem;
+  margin: 0;
+}
+
+/* Build progress. Its real job is to say "this is responding to you" — a panel
+   that fills in as you scroll with no visible cause reads as a slow load. */
+.arch__meter {
+  height: 2px;
+  border-radius: 2px;
+  background: var(--border);
+  overflow: hidden;
+  margin-top: 0.7rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.arch--armed .arch__meter {
+  opacity: 1;
+}
+
+.arch__meter span {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  transform: scaleX(clamp(0, calc((var(--p) - 0.02) / 0.78), 1));
+  transform-origin: left center;
 }
 
 .d-node,
@@ -2204,6 +2580,17 @@ pre code {
   transition: none;
 }
 
+/* Ghosted, not absent. A box that has not arrived yet is still drawn at a tenth
+   of its weight, so the panel shows the shape it is building toward instead of
+   being a screen-high empty card for the first third of the scene — which is
+   what made the build read as a failure to load rather than as a build.
+   Flows need no ghost: their paths are held back by stroke-dashoffset, so an
+   undrawn edge paints nothing at any opacity. */
+.arch--armed .d-node,
+.arch--armed .d-band {
+  opacity: calc((0.1 + 0.9 * var(--rv)) * var(--dim, 1));
+}
+
 .arch--armed .d-node {
   transform: translateY(calc((1 - var(--rv)) * 9px));
 }
@@ -2212,6 +2599,10 @@ pre code {
    -path units, and a bare number is accepted for these properties out of SVG
    compatibility — but only as a token. Inside clamp() the value is type-checked
    as a length, so the unitless form is thrown away and the edge never draws. */
+.arch--armed .d-flow .d-sub {
+  opacity: clamp(0, calc((var(--p) - var(--t0, 0) - 0.055) / 0.045), 1);
+}
+
 .arch--armed .d-flow .d-draw {
   stroke-dasharray: 1px;
   stroke-dashoffset: clamp(0px, calc((1 - (var(--p) - var(--t0, 0)) / var(--dw, 0.09)) * 1px), 1px);
@@ -2468,18 +2859,318 @@ pre code {
 /* --- scene odds and ends ---------------------------------------------------- */
 
 .scene__note {
-  font-size: 0.88rem;
+  font-size: 0.95rem;
   color: var(--text-faint);
-  max-width: 46rem;
+  max-width: var(--measure);
   margin: 0;
+  flex: none;
 }
 
-.scene__answer .mode-chip {
-  margin-bottom: 0.5rem;
-}
-
-@media (max-width: 680px) {
+/* The two outer clauses are context, not evidence — the first thing to go when
+   the pinned stage is short on room. */
+/* The two outer clauses are context, not evidence: they are what gives way when
+   the pinned stage is short of room, because a page clipped mid-sentence is a
+   worse advertisement for a document viewer than a shorter excerpt. Only a tall
+   viewport gets the full five paragraphs. */
+@media (max-height: 1010px), (max-width: 1000px) {
   .doc__extra {
     display: none;
+  }
+}
+
+/* ==========================================================================
+   Scroll-linked motion — every section, driven by the reader
+   ==========================================================================
+   The two set pieces (the retrieval scene, the architecture diagram) were the
+   only things on this page genuinely tied to the scroll position. Everything
+   else played a one-shot entrance the moment it crossed a threshold, which is
+   why the page felt like two animated sections and four static ones: a reveal
+   that fires and finishes has no relationship to what the reader is doing.
+
+   Everything below is scrubbed instead — the reader's scroll position IS the
+   playhead, forwards and backwards. It is built on native scroll-driven
+   animations (`animation-timeline: view()` / `scroll()`), which is the reason
+   this can be done to a few dozen elements at once without a scroll listener:
+   they are evaluated off the main thread, so a fling costs the same as a creep.
+   Reference: Chrome 115+/Edge 115+/Firefox 132+/Safari 18+, ~84% of browsers.
+
+   Rules this layer keeps:
+
+   * `@supports` gates the whole thing. Without it the IntersectionObserver
+     reveals in site.js still run — every treatment here is an upgrade of one,
+     never the only way an element becomes visible.
+   * `prefers-reduced-motion: no-preference` gates it too, so reduced motion
+     needs no overrides: the animations are simply never declared, and the
+     resting CSS is the finished state.
+   * Keyframes animate `translate` / `scale` / `opacity`, NOT `transform`.
+     `transform` is spoken for by the hover lifts on cards, stack items and
+     compare cards, and an animation with `fill: both` outranks a normal
+     declaration forever — animating transform here would silently kill every
+     hover in the page.
+   * Small subjects are ranged in `cover` percentages, not `entry`. The `entry`
+     range of a 2px rule is 2px of scroll, which completes in one frame.
+   ========================================================================== */
+
+/* Reading progress. No fallback: `scale: 0 1` is the resting state, so where
+   scroll timelines are missing the bar simply never has width. */
+.scroll-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.scroll-progress span {
+  display: block;
+  height: 100%;
+  transform-origin: left center;
+  scale: 0 1;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+
+/* The reading sweep: type resolves from faint to solid line by line as the
+   paragraph crosses the reading zone — the lens motif applied to prose, in the
+   one section that is nothing but prose. Guarded on background-clip because the
+   effect needs `color: transparent`, and without the clip that is invisible
+   text rather than a missing flourish. */
+@supports ((background-clip: text) or (-webkit-background-clip: text)) {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .read-sweep {
+        background-image: linear-gradient(
+          var(--text) 50%,
+          color-mix(in srgb, var(--text) 34%, var(--bg)) 50%
+        );
+        background-size: 100% 200%;
+        background-position: 0 0%;
+        background-repeat: no-repeat;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: nx-read linear both;
+        animation-timeline: view();
+        animation-range: cover 12% cover 44%;
+      }
+    }
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+
+    @keyframes nx-progress {
+      from { scale: 0 1; }
+      to { scale: 1 1; }
+    }
+
+    @keyframes nx-rise {
+      from { opacity: 0; translate: 0 28px; }
+      to { opacity: 1; translate: 0 0; }
+    }
+
+    @keyframes nx-rise-sm {
+      from { opacity: 0; translate: 0 16px; }
+      to { opacity: 1; translate: 0 0; }
+    }
+
+    /* Dealt in from the left, the way the results of a search arrive. */
+    @keyframes nx-deal {
+      from { opacity: 0; translate: -14px 8px; scale: 0.99; }
+      to { opacity: 1; translate: 0 0; scale: 1; }
+    }
+
+    @keyframes nx-wipe {
+      from { clip-path: inset(0 101% 0 0); }
+      to { clip-path: inset(0 -2% 0 0); }
+    }
+
+    @keyframes nx-rule {
+      from { scale: 0 1; }
+      to { scale: 1 1; }
+    }
+
+    @keyframes nx-read {
+      from { background-position: 0 100%; }
+      to { background-position: 0 0%; }
+    }
+
+    @keyframes nx-light {
+      from {
+        background-color: transparent;
+        color: var(--text-faint);
+        box-shadow: 0 0 0 1px transparent;
+      }
+      to {
+        background-color: var(--accent-subtle);
+        color: var(--accent);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 32%, transparent);
+      }
+    }
+
+    @keyframes nx-sweep {
+      0% { opacity: 0; translate: -120% 0; }
+      30% { opacity: 1; }
+      100% { opacity: 0; translate: 300% 0; }
+    }
+
+    @keyframes nx-lift {
+      from { translate: 0 0; }
+      to { translate: 0 -46px; }
+    }
+
+    @keyframes nx-recede {
+      from { opacity: 1; translate: 0 0; }
+      to { opacity: 0.32; translate: 0 -22px; }
+    }
+
+    /* --- global ----------------------------------------------------------- */
+
+    .scroll-progress span {
+      animation: nx-progress linear both;
+      animation-timeline: scroll(root block);
+    }
+
+    /* --- hero -------------------------------------------------------------
+       Ranged in pixels off the document scroll rather than by view(), because
+       the hero is already on screen at load and its view-progress would start
+       mid-range — i.e. the page would open with the visual already displaced. */
+    .hero .compare {
+      animation: nx-lift linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 680px;
+    }
+
+    .hero__copy {
+      animation: nx-recede linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 120px 620px;
+    }
+
+    /* The orbs used to drift on a 26s infinite loop — a blur(70px) surface
+       being recomposited forever, on screen or not. Same movement, paid for
+       only while the reader scrolls. */
+    .hero__orb {
+      animation: orb-drift linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 1100px;
+    }
+
+    .hero__orb--b {
+      animation-delay: 0s;
+      animation-range: 0 1500px;
+    }
+
+    /* --- every section heading -------------------------------------------- */
+
+    .section > h2,
+    .nx-js .reveal--wipe {
+      animation: nx-wipe linear both;
+      animation-timeline: view();
+      animation-range: cover 5% cover 26%;
+      transition: none;
+    }
+
+    .section__num::after {
+      transform-origin: left center;
+      animation: nx-rule linear both;
+      animation-timeline: view();
+      animation-range: cover 4% cover 22%;
+    }
+
+    .section__lede,
+    .scene__lede,
+    .arch__hint {
+      animation: nx-rise-sm linear both;
+      animation-timeline: view();
+      animation-range: cover 4% cover 22%;
+    }
+
+    /* --- 02 what it is ---------------------------------------------------- */
+
+    .card {
+      animation: nx-rise linear both;
+      animation-timeline: view();
+      animation-range:
+        cover calc(4% + var(--ri, 0) * 3%)
+        cover calc(24% + var(--ri, 0) * 3%);
+    }
+
+    /* The six modes are catalogued, not revealed: each entry rises, the light
+       crosses it, and its name stays lit — one after another, at the reader's
+       own pace rather than on a fixed 70ms stagger. */
+    .mode {
+      animation: nx-deal linear both;
+      animation-timeline: view();
+      animation-range:
+        cover calc(4% + var(--mi, 0) * 2%)
+        cover calc(22% + var(--mi, 0) * 2%);
+    }
+
+    .mode__scan {
+      animation: nx-sweep linear both;
+      animation-timeline: view();
+      animation-range:
+        cover calc(7% + var(--mi, 0) * 2%)
+        cover calc(25% + var(--mi, 0) * 2%);
+    }
+
+    .nx-js .reveal--catalogue .mode__name,
+    .nx-js .reveal--catalogue.is-in .mode__name {
+      animation: nx-light linear both;
+      animation-timeline: view();
+      animation-range:
+        cover calc(11% + var(--mi, 0) * 2%)
+        cover calc(23% + var(--mi, 0) * 2%);
+      transition: none;
+    }
+
+    /* --- 05 quick start --------------------------------------------------- */
+
+    .code-block,
+    .table-wrap,
+    .callout {
+      animation: nx-rise-sm linear both;
+      animation-timeline: view();
+      animation-range: cover 4% cover 22%;
+    }
+
+    .walk li {
+      animation: nx-deal linear both;
+      animation-timeline: view();
+      animation-range:
+        cover calc(4% + var(--li, 0) * 2.5%)
+        cover calc(22% + var(--li, 0) * 2.5%);
+    }
+
+    /* --- 06 tech stack ---------------------------------------------------- */
+
+    .stack-group__title::after {
+      animation: nx-rule linear both;
+      animation-timeline: view();
+      animation-range: cover 5% cover 26%;
+    }
+
+    .stack-item {
+      animation: nx-deal linear both;
+      animation-timeline: view();
+      animation-range:
+        cover calc(4% + var(--ri, 0) * 2.5%)
+        cover calc(22% + var(--ri, 0) * 2.5%);
+    }
+  }
+}
+
+/* Without scroll timelines the orbs keep their infinite drift — so it gets
+   parked whenever the hero is off screen, which is most of the page. */
+.hero-idle .hero__orb {
+  animation-play-state: paused;
+}
+
+@supports (animation-timeline: scroll()) {
+  .hero-idle .hero__orb {
+    animation-play-state: running;
   }
 }

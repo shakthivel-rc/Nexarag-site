@@ -7,8 +7,9 @@ it works on GitHub Pages without a toolchain to keep alive.
 ```
 .
 ├── index.html                       # the whole page
-├── assets/css/styles.css            # design tokens, layout, components
+├── assets/css/styles.css            # tokens, layout, components, motion
 ├── assets/js/site.js                # theme, nav, scroll-spy, copy, highlighting
+├── assets/js/lens.js                # the two scroll-driven set pieces + counters
 ├── .nojekyll                        # stop Pages running the content through Jekyll
 └── .github/workflows/deploy-pages.yml
 ```
@@ -87,3 +88,40 @@ pages and the failure only shows up after deploy.
   The copy button is injected by JS; the block renders fine without it.
 - **A new section** — add the `<section>` and a matching entry in the sidebar
   `.toc`. Scroll-spy picks it up automatically from the `href`.
+
+## Motion
+
+Three layers, in increasing order of how much they cost to run.
+
+1. **Scrubbed section motion — CSS only.** Cards, modes, list items, stack items,
+   headings, the reading progress bar and the reading sweep in *Why it exists* are
+   driven by native scroll-driven animations (`animation-timeline: view()` and
+   `scroll()`) in the last block of `styles.css`. There is no scroll listener
+   behind any of it, and it is evaluated off the main thread — which is why a
+   fling costs the same as a creep. Gated on `@supports (animation-timeline: view())`
+   **and** `prefers-reduced-motion: no-preference`, so reduced motion needs no
+   overrides: the animations are simply never declared and the resting CSS is the
+   finished state.
+2. **IntersectionObserver reveals — the fallback.** `initReveal` in `site.js` and
+   the `.reveal*` classes still exist for browsers without scroll timelines
+   (roughly one in six). Anything with a scrubbed treatment also has one of these,
+   never only the scrubbed one.
+3. **The two set pieces — JS.** `lens.js` owns the retrieval scene and the
+   architecture diagram: one scroll listener, one rAF, split into a read pass and
+   a write pass for both scenes together. Each writes a single custom property per
+   frame and derives everything else from it in CSS.
+
+Rules worth keeping:
+
+- Keyframes here animate `translate` / `scale` / `opacity`, **never `transform`**.
+  Hover lifts on cards, stack items and compare cards own `transform`, and an
+  animation with `fill: both` outranks a normal declaration permanently — animating
+  `transform` in a scroll animation silently kills every hover on the element.
+- Small subjects are ranged in `cover` percentages, not `entry`: the `entry` range
+  of a 2px rule is 2px of scroll, which completes in a single frame.
+- Never scale a blurred surface in an animation. Moving the hero orbs with
+  `translate` is compositor work; scaling them re-rasterizes a `blur(70px)` layer
+  every frame, which was the only thing on this page dropping frames.
+- Both set pieces decide by **measurement** whether to pin themselves, and fall
+  back to a complete still telling when they would not fit. Pinning something the
+  reader has to scroll inside explains nothing.
