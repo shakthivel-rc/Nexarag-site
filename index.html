@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nexarag — six RAG techniques, one workbench, zero pipeline code</title>
-<meta name="description" content="Nexarag is an open-source, self-hosted workbench for retrieval-augmented generation. Upload documents once, then switch retrieval modes, chunking strategies and LLM providers per question — and see the exact passages every answer stands on.">
+<title>NexaRAG — six RAG techniques, one workbench, zero pipeline code</title>
+<meta name="description" content="NexaRAG is an open-source, self-hosted workbench for retrieval-augmented generation. Upload documents once, then switch retrieval modes, chunking strategies and LLM providers per question — and see the exact passages every answer stands on.">
 <meta name="color-scheme" content="light dark">
 
 <meta property="og:type" content="website">
-<meta property="og:title" content="Nexarag — compare RAG techniques without building them">
+<meta property="og:title" content="NexaRAG — compare RAG techniques without building them">
 <meta property="og:description" content="Six retrieval modes, four chunking strategies, eleven LLM providers. Download it, run it with Docker, switch configs per question.">
 <meta name="twitter:card" content="summary_large_image">
 
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='13' cy='13' r='8' fill='none' stroke='%234f46e5' stroke-width='2.6'/%3E%3Ccircle cx='13' cy='13' r='2.6' fill='%230d9488'/%3E%3Cpath d='M19 19l8 8' stroke='%234f46e5' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%234f46e5'/%3E%3Cg stroke='%23ffffff' stroke-width='2' stroke-linecap='round' opacity='.6'%3E%3Cpath d='M7 9.5h13M7 14h6.5'/%3E%3C/g%3E%3Cpath d='M12.5 18h10' stroke='%232dd4bf' stroke-width='2.4' stroke-linecap='round'/%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='17.5' cy='18' r='6.6'/%3E%3Cpath d='M22.2 22.7 26.3 26.8'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/css/styles.css">
 
 <script>
@@ -34,14 +34,21 @@
 
 <header class="site-header">
   <div class="site-header__inner">
-    <a class="brand" href="#top">
-      <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true">
-        <path class="edge" d="M16 7 7 24M16 7l9 17M7 24h18" fill="none"/>
-        <circle class="node-a" cx="16" cy="7" r="4"/>
-        <circle class="node-b" cx="7" cy="24" r="4"/>
-        <circle class="node-a" cx="25" cy="24" r="4"/>
+    <!-- The mark. Drawn here rather than borrowed: the app previously wore a
+         lucide `Zap` glyph, which is fine artwork but is on thousands of other
+         products, and the site wore an unrelated node-triangle. This geometry is
+         original, is the same in both places, and says what the product does — a
+         lens over a document, with the matched line lit through the glass.
+         Every colour is a token, so it themes itself. -->
+    <a class="brand" href="#top" aria-label="NexaRAG — home">
+      <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <rect class="mark-badge" width="32" height="32" rx="9"/>
+        <path class="mark-line" d="M7 9.5h13M7 14h6.5"/>
+        <path class="mark-hit" d="M12.5 18h10"/>
+        <circle class="mark-lens" cx="17.5" cy="18" r="6.6"/>
+        <path class="mark-lens" d="M22.2 22.7 26.3 26.8"/>
       </svg>
-      Nexarag
+      <span class="brand__word">Nexa<b>RAG</b></span>
     </a>
 
     <nav class="nav-links" aria-label="Sections">
@@ -330,13 +337,162 @@
       <h3 id="modes">The six modes</h3>
       <!-- The lens catalogues the available strategies: one sweep per entry, in
            sequence, each name lighting up as the light passes over it. -->
+      <!-- Each mode is a <details>. That gives click, tap, keyboard and Escape for
+           free and still opens with JavaScript disabled; hover is added on top as a
+           shortcut, never as the only way in — a hover-only panel does not exist on a
+           phone. An open panel spans the whole grid row (see .modes details[open]),
+           because a 300px card cannot hold a flowchart. -->
       <div class="modes reveal reveal--catalogue">
-        <div class="mode lockon" style="--mi:0"><span class="mode__scan" aria-hidden="true"></span><span class="mode__name">Contextual Hybrid</span><p>Matches your wording against each passage and the context around it. The default.</p></div>
-        <div class="mode lockon" style="--mi:1"><span class="mode__scan" aria-hidden="true"></span><span class="mode__name">RAG-Fusion</span><p>Searches several rephrasings of your question and merges the rankings.</p></div>
-        <div class="mode lockon" style="--mi:2"><span class="mode__scan" aria-hidden="true"></span><span class="mode__name">GraphRAG</span><p>Boosts passages naming the same parts, people or terms as your question.</p></div>
-        <div class="mode lockon" style="--mi:3"><span class="mode__scan" aria-hidden="true"></span><span class="mode__name">Corrective</span><p>Grades the evidence first, and declines rather than answer on weak support.</p></div>
-        <div class="mode lockon" style="--mi:4"><span class="mode__scan" aria-hidden="true"></span><span class="mode__name">Multi-Modal</span><p>Favours tables, spreadsheets and media when the question calls for them.</p></div>
-        <div class="mode lockon" style="--mi:5"><span class="mode__scan" aria-hidden="true"></span><span class="mode__name">Agentic RAG</span><p>Runs the other modes together and combines their best results. Slowest.</p></div>
+        <details class="mode lockon" style="--mi:0" data-mode="contextual-hybrid">
+          <summary>
+            <span class="mode__scan" aria-hidden="true"></span>
+            <span class="mode__name">Contextual Hybrid</span>
+            <p class="mode__gist">Matches your wording against each passage and the context around it. The default.</p>
+            <span class="mode__more" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              Details
+            </span>
+          </summary>
+          <div class="mode__panel">
+            <div class="mode__flow" data-flow="contextual-hybrid"></div>
+            <div class="mode__detail">
+              <p class="mode__heading">How it works</p>
+              <ol class="mode__steps">
+                <li><b>Score every passage</b><span>Each passage is scored on how many of your words it contains, over the passage <em>plus</em> a six-line header naming its document, file and position — so a passage about “notice” in a contract about termination scores higher than the same words in an unrelated file.</span></li>
+                <li><b>Normalise for length</b><span>The score is divided by passage length, so a long passage cannot win just by containing more words.</span></li>
+                <li><b>Keep the top five</b><span>The five best passages become the evidence, and the answer is written from those alone.</span></li>
+              </ol>
+              <p class="mode__heading">When to use it</p>
+              <p class="mode__when">Use it for almost everything. It is the fastest mode and the one every other mode builds on. It is also what runs if a mode name is not recognised.</p>
+              <p class="mode__cost">Fastest · one pass over your documents</p>
+            </div>
+          </div>
+        </details>
+        <details class="mode lockon" style="--mi:1" data-mode="rag-fusion">
+          <summary>
+            <span class="mode__scan" aria-hidden="true"></span>
+            <span class="mode__name">RAG-Fusion</span>
+            <p class="mode__gist">Searches several rephrasings of your question and merges the rankings.</p>
+            <span class="mode__more" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              Details
+            </span>
+          </summary>
+          <div class="mode__panel">
+            <div class="mode__flow" data-flow="rag-fusion"></div>
+            <div class="mode__detail">
+              <p class="mode__heading">How it works</p>
+              <ol class="mode__steps">
+                <li><b>Rewrite the question, mechanically</b><span>Up to four versions are built by rule, not by a model: your question as typed, its meaningful words with duplicates removed, those words reversed, and the first three of them.</span></li>
+                <li><b>Search with each one</b><span>Every version runs a full Contextual Hybrid search of its own, eight passages deep.</span></li>
+                <li><b>Merge by rank, not by score</b><span>A passage earns <code>1/(60 + its rank)</code> from every version that found it, and the totals decide the winner — so a passage several rephrasings agree on beats one that a single phrasing loved.</span></li>
+              </ol>
+              <p class="mode__heading">When to use it</p>
+              <p class="mode__when">Use it when your wording might not match the document’s. It costs one search per rephrasing, so it is slower than the default.</p>
+              <p class="mode__cost">Slower · four searches merged</p>
+            </div>
+          </div>
+        </details>
+        <details class="mode lockon" style="--mi:2" data-mode="graph-rag">
+          <summary>
+            <span class="mode__scan" aria-hidden="true"></span>
+            <span class="mode__name">GraphRAG</span>
+            <p class="mode__gist">Boosts passages naming the same parts, people or terms as your question.</p>
+            <span class="mode__more" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              Details
+            </span>
+          </summary>
+          <div class="mode__panel">
+            <div class="mode__flow" data-flow="graph-rag"></div>
+            <div class="mode__detail">
+              <p class="mode__heading">How it works</p>
+              <ol class="mode__steps">
+                <li><b>Match your words to named things</b><span>During indexing, recurring names — parts, people, terms — were extracted from your documents. Any of your words that matches one of those names is a signal.</span></li>
+                <li><b>Lift the passages that mention them</b><span>Every passage that names a matched thing gets a bonus, and the bonus is <strong>capped</strong> as a fraction of the best ordinary score — so it can reorder the results but never overwhelm them.</span></li>
+                <li><b>Pull in what keywords missed</b><span>A passage found only through a shared name can still enter the results, which is how this mode surfaces evidence a plain keyword search walks past.</span></li>
+              </ol>
+              <p class="mode__heading">When to use it</p>
+              <p class="mode__when">Use it for questions about how things relate — a part, a clause or a person appearing in several places. It does not walk a graph of relationships; it re-ranks on shared names.</p>
+              <p class="mode__cost">Moderate · one search plus a capped re-rank</p>
+            </div>
+          </div>
+        </details>
+        <details class="mode lockon" style="--mi:3" data-mode="corrective">
+          <summary>
+            <span class="mode__scan" aria-hidden="true"></span>
+            <span class="mode__name">Corrective</span>
+            <p class="mode__gist">Grades the evidence first, and declines rather than answer on weak support.</p>
+            <span class="mode__more" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              Details
+            </span>
+          </summary>
+          <div class="mode__panel">
+            <div class="mode__flow" data-flow="corrective"></div>
+            <div class="mode__detail">
+              <p class="mode__heading">How it works</p>
+              <ol class="mode__steps">
+                <li><b>Search once, then grade</b><span>A normal Contextual Hybrid search runs, and the result is measured: how much of your question the passages actually cover, and whether anything scored above zero.</span></li>
+                <li><b>Retry differently if it is thin</b><span>If the evidence does not clear the bar, the question is re-run as a RAG-Fusion search — a second attempt with different phrasings rather than the same one again.</span></li>
+                <li><b>Refuse if it is still thin</b><span>If that also fails, you are told so, and told which of your words matched nothing — so a typo is distinguishable from a topic your documents do not cover.</span></li>
+              </ol>
+              <p class="mode__heading">When to use it</p>
+              <p class="mode__when">Use it when a wrong answer would cost more than no answer. Every mode refuses on weak evidence; this is the one that tries a second route before giving up.</p>
+              <p class="mode__cost">Moderate · one search, sometimes two</p>
+            </div>
+          </div>
+        </details>
+        <details class="mode lockon" style="--mi:4" data-mode="multi-modal">
+          <summary>
+            <span class="mode__scan" aria-hidden="true"></span>
+            <span class="mode__name">Multi-Modal</span>
+            <p class="mode__gist">Favours tables, spreadsheets and media when the question calls for them.</p>
+            <span class="mode__more" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              Details
+            </span>
+          </summary>
+          <div class="mode__panel">
+            <div class="mode__flow" data-flow="multi-modal"></div>
+            <div class="mode__detail">
+              <p class="mode__heading">How it works</p>
+              <ol class="mode__steps">
+                <li><b>Read the intent in your words</b><span>Words like <em>table</em>, <em>row</em>, <em>total</em>, <em>chart</em> or <em>transcript</em> say what kind of content you are after.</span></li>
+                <li><b>Weight the matching kind</b><span>Passages recorded as that kind of content are scored 1.8x; ordinary document text gets 1.1x. Nothing is excluded — the ordering changes, not the pool.</span></li>
+                <li><b>Score as usual</b><span>Everything else is the same term-overlap scoring the default mode uses.</span></li>
+              </ol>
+              <p class="mode__heading">When to use it</p>
+              <p class="mode__when">Use it for “what was the total in the summary table”. If your question names no content type, it behaves almost exactly like the default.</p>
+              <p class="mode__cost">Fast · one pass with a modality weighting</p>
+            </div>
+          </div>
+        </details>
+        <details class="mode lockon" style="--mi:5" data-mode="agentic-rag">
+          <summary>
+            <span class="mode__scan" aria-hidden="true"></span>
+            <span class="mode__name">Agentic RAG</span>
+            <p class="mode__gist">Runs the other modes together and combines their best results. Slowest.</p>
+            <span class="mode__more" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              Details
+            </span>
+          </summary>
+          <div class="mode__panel">
+            <div class="mode__flow" data-flow="agentic-rag"></div>
+            <div class="mode__detail">
+              <p class="mode__heading">How it works</p>
+              <ol class="mode__steps">
+                <li><b>Choose the tools by keyword</b><span>Five retrieval tools get fixed weights, adjusted by rule: words like <em>compare</em> or <em>between</em> raise GraphRAG’s weight, words like <em>table</em> or <em>chart</em> raise Multi-Modal’s. <strong>No language model plans anything here</strong> — it is a keyword test.</span></li>
+                <li><b>Run them all and merge</b><span>Each tool runs and its scores are normalised, weighted, and given a rank bonus, so tools with different scoring scales can be compared at all.</span></li>
+                <li><b>Repair, then grade</b><span>If the merged evidence is still thin, extra passes run over the rephrasings, and the final evidence is graded and reported with the answer.</span></li>
+              </ol>
+              <p class="mode__heading">When to use it</p>
+              <p class="mode__when">Use it when an answer matters more than latency: it does the work of four or five modes for one question, and returns up to seven passages instead of five.</p>
+              <p class="mode__cost">Slowest · five tools plus repair passes</p>
+            </div>
+          </div>
+        </details>
       </div>
     </section>
 
@@ -780,7 +936,7 @@ ollama pull nomic-embed-text   # per-document embeddings</code></pre>
 
 <footer class="site-footer">
   <div class="site-footer__inner">
-    <p>Nexarag — compare RAG techniques on your own documents.</p>
+    <p>NexaRAG — compare RAG techniques on your own documents.</p>
     <nav aria-label="Footer">
       <a href="#what-it-is">What it is</a>
       <a href="#how-it-works">How it works</a>

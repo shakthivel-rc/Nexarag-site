@@ -349,24 +349,61 @@ code {
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.6rem;
   font-weight: 700;
-  font-size: 1.08rem;
+  font-size: 1.25rem;
   letter-spacing: -0.02em;
   color: var(--text);
   text-decoration: none;
   margin-right: auto;
 }
 
+/* Bigger than it was: at 1.6rem beside 1.08rem text the mark read as a bullet
+   point rather than as a logo. */
 .brand__mark {
-  width: 1.6rem;
-  height: 1.6rem;
+  width: 2.15rem;
+  height: 2.15rem;
   flex: none;
+  border-radius: 0.6rem;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
-.brand__mark .node-a { fill: var(--primary); }
-.brand__mark .node-b { fill: var(--accent); }
-.brand__mark .edge { stroke: var(--border-strong); stroke-width: 1.6; }
+.brand__mark .mark-badge { fill: var(--primary); }
+
+.brand__mark .mark-line {
+  stroke: var(--primary-contrast);
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.6;
+  fill: none;
+}
+
+/* The matched line, lit through the glass — the whole product in one stroke. */
+.brand__mark .mark-hit {
+  stroke: var(--accent);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.brand__mark .mark-lens {
+  stroke: var(--primary-contrast);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.brand__word {
+  font-weight: 700;
+  letter-spacing: -0.022em;
+}
+
+/* RAG is an acronym and reads better as one: the eye stops treating "Nexarag" as
+   a single unfamiliar word. */
+.brand__word b {
+  font-weight: 800;
+  color: var(--primary);
+}
 
 .nav-links {
   display: none;
@@ -981,27 +1018,72 @@ code {
   margin: 0;
 }
 
-/* --- modes ---------------------------------------------------------------- */
+/* --- modes ----------------------------------------------------------------
+   Each mode is a <details>, so opening one is native: click, tap, Enter, Space,
+   and it still works with JavaScript off. Hover is added in lens.js on top of
+   that, as a shortcut — never as the only way in, because a hover-only panel
+   does not exist on a phone and cannot be reached from a keyboard.
+
+   Explicit column counts rather than auto-fit: an open panel spans the full row
+   with `grid-column: 1 / -1`, and a spanning item's min-content contribution can
+   collapse an auto-fit track count to one. */
 
 .modes {
   display: grid;
   gap: 0.85rem;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 1.25rem 0 1rem;
+  align-items: start;
+}
+
+@media (max-width: 1040px) {
+  .modes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .modes {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .mode {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 1rem 1.1rem;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .mode:hover {
-  transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
   box-shadow: var(--shadow-sm);
+}
+
+/* Open, it becomes a full-width panel in place. No overlay, no focus trap, and
+   the reading order stays where the reader's attention already is. */
+.modes details[open] {
+  grid-column: 1 / -1;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  box-shadow: var(--shadow-md);
+}
+
+.mode > summary {
+  position: relative;
+  overflow: hidden;
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius);
+  list-style: none;
+  cursor: pointer;
+}
+
+.mode > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mode > summary:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .mode__name {
@@ -1016,9 +1098,145 @@ code {
   margin-bottom: 0.5rem;
 }
 
-.mode p {
+.mode__gist {
   font-size: 0.96rem;
   color: var(--text-muted);
+  margin: 0;
+  max-width: none;
+}
+
+/* The affordance. Present at rest, so nobody has to discover that these open. */
+.mode__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  margin-top: 0.7rem;
+  font-size: 0.82rem;
+  font-weight: 620;
+  color: var(--primary);
+}
+
+.mode__more svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.mode[open] .mode__more svg {
+  transform: rotate(180deg);
+}
+
+.mode__panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.1rem 1.8rem;
+  padding: 1.1rem 1.1rem 1.15rem;
+  border-top: 1px solid var(--border);
+}
+
+/* The panel spans the full grid row, so without a measure the steps would run to
+   1300px lines. */
+.mode__detail {
+  max-width: var(--measure);
+}
+
+/* Two columns only once there is a flowchart to put in the first one. */
+@media (min-width: 900px) {
+  .mode__panel:has(.mode__flow:not(:empty)) {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  }
+}
+
+/* Empty until the per-mode flowcharts are authored against the retrieval code —
+   an empty bordered box would read as a broken image. */
+.mode__flow:empty {
+  display: none;
+}
+
+.mode__flow svg {
+  width: 100%;
+  height: auto;
+}
+
+.mode__heading {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 0 0 0.6rem;
+}
+
+.mode__heading + .mode__heading,
+.mode__steps + .mode__heading {
+  margin-top: 1.1rem;
+}
+
+.mode__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.7rem;
+  counter-reset: mstep;
+  max-width: none;
+}
+
+.mode__steps li {
+  counter-increment: mstep;
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  gap: 0.15rem 0.6rem;
+  margin: 0;
+}
+
+.mode__steps li::before {
+  content: counter(mstep);
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: var(--primary-subtle);
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 680;
+  align-self: start;
+}
+
+.mode__steps b {
+  font-size: 0.96rem;
+  font-weight: 650;
+  color: var(--text);
+}
+
+.mode__steps span {
+  grid-column: 2;
+  font-size: 0.93rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.mode__when {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: 0 0 0.6rem;
+  max-width: none;
+}
+
+.mode__cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.79rem;
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.22rem 0.65rem;
   margin: 0;
 }
 
@@ -1500,19 +1718,34 @@ pre code {
    .scene--live, never out of.
    ========================================================================== */
 
-/* --- lens cursor -----------------------------------------------------------
-   The ring ACCOMPANIES the real pointer; it never replaces it. The previous
-   version hid the native cursor (`cursor: none`) and drew a white ring under
-   `mix-blend-mode: difference` to stay visible on any background — but the
-   ring's own parent carries `will-change: transform`, which makes it a
-   stacking context, which isolates the blend. Isolated, difference has nothing
-   to blend against and the ring simply stays white: invisible on a light page,
-   with no native pointer left either. Nothing about that failure is visible on
-   a dark theme, which is why it shipped.
+/* --- the lens cursor -------------------------------------------------------
+   The native pointer is replaced, not accompanied. That is only defensible
+   because of three things this implementation does and the previous one did not:
 
-   So: no blend modes, no hidden pointer. The ring is drawn in theme tokens with
-   a light-coloured halo behind it, which reads on both palettes and cannot be
-   defeated by a stacking context. */
+   1. **A lag-free centre dot.** The ring trails the pointer for feel, but the dot
+      sits exactly where the pointer is, on the same frame. Hiding the system
+      cursor and leaving only a trailing ring costs precision; a dot at the true
+      position gives it back.
+   2. **It survives the light theme.** The first version drew a white ring under
+      `mix-blend-mode: difference` to invert against any background — but its
+      parent carries `will-change: transform`, which makes a stacking context,
+      which isolates the blend. Isolated, difference has nothing to blend against,
+      so the ring stayed white: invisible on a light page, with no system pointer
+      left either. Everything here is painted in theme tokens with a halo of the
+      page's own background, which cannot be defeated by a stacking context.
+   3. **The affordances the system cursor was carrying are re-created.** Over text
+      the ring collapses to an I-beam; over anything clickable it snaps to that
+      element's box; pressing contracts it. A custom cursor that looks the same
+      everywhere throws away information the reader was using.
+
+   `cursor: none` is applied by a class the script adds only AFTER the ring exists
+   and has been positioned, and it is removed again if the reduced-motion
+   preference changes at runtime. The page is never left with no pointer at all. */
+
+.has-lens-cursor,
+.has-lens-cursor * {
+  cursor: none !important;
+}
 
 .nx-cursor {
   position: fixed;
@@ -1522,34 +1755,52 @@ pre code {
   transition: opacity 0.25s ease;
 }
 
-.nx-cursor__ring {
+.nx-cursor__ring,
+.nx-cursor__dot {
   position: absolute;
   top: 0;
   left: 0;
   will-change: transform;
 }
 
+/* The precise point. No lerp, no transition on position — this is the thing that
+   makes hiding the system pointer honest. */
+.nx-cursor__dot::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--primary);
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--bg) 70%, transparent);
+  transition: opacity 0.2s ease, scale 0.2s ease;
+}
+
 .nx-cursor__ring::after {
   content: "";
   position: absolute;
-  top: -19px;
-  left: -19px;
-  width: 38px;
-  height: 38px;
-  border: 1.5px solid color-mix(in srgb, var(--primary) 70%, transparent);
-  border-radius: 999px;
-  /* Two rings: the outer one is the page's own background, so the lens keeps a
-     readable edge over a code block, a dark diagram or a white card alike. */
+  top: calc(var(--ring-h, 38px) / -2);
+  left: calc(var(--ring-w, 38px) / -2);
+  width: var(--ring-w, 38px);
+  height: var(--ring-h, 38px);
+  border: 1.5px solid color-mix(in srgb, var(--primary) 72%, transparent);
+  border-radius: var(--ring-r, 999px);
+  background: color-mix(in srgb, var(--primary) 5%, transparent);
   box-shadow:
     0 0 0 1.5px color-mix(in srgb, var(--bg) 55%, transparent),
-    inset 0 0 12px color-mix(in srgb, var(--primary) 10%, transparent);
+    inset 0 0 14px color-mix(in srgb, var(--primary) 9%, transparent);
   transition:
-    transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1),
-    border-radius 0.3s cubic-bezier(0.2, 0.7, 0.2, 1),
-    border-color 0.3s ease;
+    width 0.26s cubic-bezier(0.2, 0.7, 0.2, 1),
+    height 0.26s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-radius 0.26s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    scale 0.14s ease;
 }
 
-/* Crosshair ticks — visible only while scanning the retrieval scene. */
+/* Crosshair ticks — the lens "measuring", shown while scanning the document. */
 .nx-cursor__ring i {
   position: absolute;
   background: var(--primary);
@@ -1562,18 +1813,32 @@ pre code {
 .nx-cursor__ring i:nth-child(3) { left: -26px; top: -0.75px; height: 1.5px; width: 8px; }
 .nx-cursor__ring i:nth-child(4) { left: 18px;  top: -0.75px; height: 1.5px; width: 8px; }
 
-/* Over an interactive element the ring snaps from lens to viewfinder bracket. */
-.cur-engage .nx-cursor__ring::after {
-  transform: scale(1.25);
-  border-radius: 10px;
+/* Snapped to something clickable: the ring becomes that element's box, so the
+   pointer reads as "this is the thing you are about to press". The script writes
+   the three geometry variables; the transitions above do the morph. */
+.cur-snap .nx-cursor__ring::after {
+  border-width: 2px;
   border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.cur-snap .nx-cursor__dot::after {
+  opacity: 0;
+  scale: 0.4;
+}
+
+/* Over selectable text: an I-beam, because that is the affordance the system
+   cursor was providing and text selection still works. */
+.cur-text .nx-cursor__ring::after {
+  border-color: color-mix(in srgb, var(--primary) 55%, transparent);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.cur-text .nx-cursor__dot::after {
+  opacity: 0;
 }
 
 /* Over the document wall the lens widens and shows its crosshair. */
-.cur-scan .nx-cursor__ring::after {
-  transform: scale(1.7);
-}
-
 .cur-scan .nx-cursor__ring i {
   opacity: 1;
 }
@@ -1582,6 +1847,16 @@ pre code {
 .cur-scan .nx-cursor__ring i:nth-child(2) { transform: translateY(9px); }
 .cur-scan .nx-cursor__ring i:nth-child(3) { transform: translateX(-9px); }
 .cur-scan .nx-cursor__ring i:nth-child(4) { transform: translateX(9px); }
+
+/* Pressing: the lens contracts onto the point, the way a shutter does. */
+.cur-press .nx-cursor__ring::after {
+  scale: 0.82;
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+}
+
+.cur-press .nx-cursor__dot::after {
+  scale: 1.5;
+}
 
 /* --- hero: viewfinder + found words --------------------------------------- */
 
@@ -1746,8 +2021,10 @@ pre code {
   gap: 1rem;
 }
 
+/* 380vh, up from 300vh. The extra 80vh all goes to the last two beats — see the
+   BEATS table in lens.js, which is where the pacing actually lives. */
 .scene--live {
-  height: 300vh;
+  height: 380vh;
 }
 
 .scene--live .scene__sticky {
@@ -2211,6 +2488,21 @@ pre code {
 
 .scene__answer .compare-card__cites {
   margin: 0;
+}
+
+.scene--live .scene__answer .compare-card__cites .cite {
+  opacity: 0;
+  translate: 0 6px;
+  transition: opacity 0.35s ease, translate 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.scene--live .scene__answer.cited .compare-card__cites .cite {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.scene--live .scene__answer.cited .compare-card__cites .cite:nth-child(2) {
+  transition-delay: 0.1s;
 }
 
 .scene__answer-foot {

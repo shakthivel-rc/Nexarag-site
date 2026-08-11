@@ -20,7 +20,8 @@
         teleporting it.
      5. The data-flow rail — the reader's scroll position advances the pipeline.
      6. Hero counters, and parking the orbs when the hero is off screen.
-     7. Small echoes — a scan-flash on copy.
+     7. The mode disclosures — hover-to-open layered over native <details>.
+     8. Small echoes — a scan-flash on copy.
 
    The rest of the motif is declarative. Section treatments are scrubbed by
    native scroll-driven animations in the last layer of styles.css and need no
@@ -45,7 +46,22 @@
     return !REDUCED.matches;
   }
 
-  /* --- 1. cursor ----------------------------------------------------------- */
+  /* --- 1. the lens cursor ----------------------------------------------------
+     Replaces the system pointer with a lens. Four states, each re-creating an
+     affordance the system cursor was carrying:
+
+       default   ring + a lag-free centre dot
+       snap      over a link or button the ring morphs to that element's box
+       text      over selectable copy the ring collapses to an I-beam
+       scan      over the retrieval scene's document the crosshair appears
+
+     Read the note above `.has-lens-cursor` in styles.css before changing any of
+     this: an earlier version hid the system pointer and then failed to draw
+     anything on the light theme, which left visitors with no pointer at all. The
+     rules that prevent a repeat are (a) everything is painted in theme tokens
+     with a halo of the page background, never a blend mode, and (b) `cursor:
+     none` is only applied once the ring is in the DOM and positioned, and is
+     withdrawn if the motion preference changes. */
 
   function initCursor() {
     if (!FINE.matches || !motionOK()) return;
@@ -54,66 +70,145 @@
     var wrap = document.createElement('div');
     wrap.className = 'nx-cursor';
     wrap.setAttribute('aria-hidden', 'true');
-    // The ring only. The native pointer is never hidden — it is the one thing on
-    // the page that must be visible in every theme, and a decorative element is
-    // the wrong thing to bet that on. (See the note in styles.css: the previous
-    // blend-mode ring was invisible on the light theme with no pointer behind
-    // it.) The old inner dot existed to replace the pointer's tip, so it goes.
-    wrap.innerHTML = '<span class="nx-cursor__ring"><i></i><i></i><i></i><i></i></span>';
-    // Hidden until the pointer first moves. Parked at -100,-100 the ring is not
-    // off screen — it is a quarter of a circle in the top-left corner, which
-    // used to be invisible only because the blend mode made it invisible
-    // everywhere.
+    wrap.innerHTML =
+      '<span class="nx-cursor__ring"><i></i><i></i><i></i><i></i></span>' +
+      '<span class="nx-cursor__dot"></span>';
     wrap.style.opacity = '0';
     document.body.appendChild(wrap);
 
     var ring = wrap.children[0];
-    var mx = -100, my = -100, rx = -100, ry = -100;
+    var dot = wrap.children[1];
+    var mx = -1, my = -1, rx = 0, ry = 0;
+    var snap = null;
     var raf = null;
 
-    // The ring trails the pointer — a low lerp factor is the fluid "heavy
-    // glass" feel. The loop parks itself once it settles, so an idle pointer
-    // costs zero frames.
+    /* Geometry is written as three custom properties rather than as a transform,
+       so the CSS owns the morph timing and this loop stays a position writer. */
+    function setRingBox(w, h, r) {
+      ring.style.setProperty('--ring-w', w + 'px');
+      ring.style.setProperty('--ring-h', h + 'px');
+      ring.style.setProperty('--ring-r', r);
+    }
+
     function frame() {
-      rx += (mx - rx) * 0.16;
-      ry += (my - ry) * 0.16;
-      ring.style.transform = 'translate3d(' + rx + 'px,' + ry + 'px,0)';
-      if (Math.abs(mx - rx) + Math.abs(my - ry) > 0.15) {
+      // Snapped, the ring parks on the element's centre; free, it trails the
+      // pointer. The dot always sits exactly on the pointer.
+      var tx = snap ? snap.cx : mx;
+      var ty = snap ? snap.cy : my;
+      var k = snap ? 0.3 : 0.16;
+      rx += (tx - rx) * k;
+      ry += (ty - ry) * k;
+      ring.style.transform = 'translate3d(' + rx.toFixed(1) + 'px,' + ry.toFixed(1) + 'px,0)';
+      dot.style.transform = 'translate3d(' + mx + 'px,' + my + 'px,0)';
+      if (Math.abs(tx - rx) + Math.abs(ty - ry) > 0.15) {
         raf = requestAnimationFrame(frame);
       } else {
         raf = null;
       }
     }
 
+    function kick() {
+      if (raf === null) raf = requestAnimationFrame(frame);
+    }
+
     document.addEventListener('mousemove', function (e) {
       if (mx < 0) {
-        // First sighting: place the ring rather than flying it in from the
-        // corner it was parked in.
+        // First sighting: place both parts, reveal, and only now take the system
+        // pointer away — so a failure before this point leaves it alone.
         rx = mx = e.clientX;
         ry = my = e.clientY;
         ring.style.transform = 'translate3d(' + rx + 'px,' + ry + 'px,0)';
+        dot.style.transform = 'translate3d(' + mx + 'px,' + my + 'px,0)';
         wrap.style.opacity = '1';
+        root.classList.add('has-lens-cursor');
         return;
       }
       mx = e.clientX;
       my = e.clientY;
-      if (raf === null) raf = requestAnimationFrame(frame);
+      kick();
     }, { passive: true });
 
-    // Engage states by delegation: over anything interactive the ring snaps
-    // into a viewfinder bracket; over the retrieval scene it widens to scan.
+    /* State by delegation. `mouseover` fires on entering any descendant, which is
+       exactly when the state might change. */
     document.addEventListener('mouseover', function (e) {
       var t = e.target;
-      root.classList.toggle('cur-engage', !!(t.closest && t.closest('a, button, [role="button"]')));
-      root.classList.toggle('cur-scan', !!(t.closest && t.closest('.scene__stage, .doc')));
+      if (!t.closest) return;
+
+      var hit = t.closest('a, button, [role="button"], summary, label, input, select, textarea');
+      if (hit) {
+        var r = hit.getBoundingClientRect();
+        // Snap only to something small enough that becoming its outline still
+        // reads as a cursor. A full-width block would just look like a border.
+        if (r.width > 8 && r.width < 340 && r.height < 90) {
+          var cs = getComputedStyle(hit);
+          var radius = parseFloat(cs.borderTopLeftRadius) || 0;
+          snap = { cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
+          setRingBox(Math.round(r.width + 14), Math.round(r.height + 12), Math.round(radius + 7) + 'px');
+          root.classList.add('cur-snap');
+          root.classList.remove('cur-text', 'cur-scan');
+          kick();
+          return;
+        }
+      }
+
+      if (snap) {
+        snap = null;
+        root.classList.remove('cur-snap');
+      }
+
+      if (t.closest('.scene__stage, .doc, .diagram')) {
+        setRingBox(64, 64, '999px');
+        root.classList.add('cur-scan');
+        root.classList.remove('cur-text');
+        kick();
+        return;
+      }
+      root.classList.remove('cur-scan');
+
+      // Selectable copy. Links were handled above, so this cannot steal them.
+      if (t.closest('p, h1, h2, h3, h4, li, td, th, code, pre, dd, dt, figcaption, blockquote, .cite, .mode__name')) {
+        setRingBox(3, 26, '2px');
+        root.classList.add('cur-text');
+        kick();
+        return;
+      }
+
+      root.classList.remove('cur-text');
+      setRingBox(38, 38, '999px');
+      kick();
     });
 
+    document.addEventListener('mousedown', function () {
+      root.classList.add('cur-press');
+    }, { passive: true });
+    document.addEventListener('mouseup', function () {
+      root.classList.remove('cur-press');
+    }, { passive: true });
+
+    // Leaving the window: give the system pointer back, so the browser chrome and
+    // anything outside the document behave normally.
     document.addEventListener('mouseleave', function () {
       wrap.style.opacity = '0';
+      root.classList.remove('has-lens-cursor');
     });
     document.addEventListener('mouseenter', function () {
       wrap.style.opacity = '1';
+      root.classList.add('has-lens-cursor');
     });
+
+    // A preference that changes mid-session must not leave the pointer hidden.
+    REDUCED.addEventListener('change', function () {
+      if (REDUCED.matches) {
+        root.classList.remove('has-lens-cursor');
+        wrap.style.opacity = '0';
+      }
+    });
+
+    // A touch anywhere means this is not a mouse session after all.
+    window.addEventListener('touchstart', function () {
+      root.classList.remove('has-lens-cursor');
+      wrap.style.opacity = '0';
+    }, { passive: true, once: true });
   }
 
   /* --- 2. hero sequence ----------------------------------------------------- */
@@ -142,12 +237,30 @@
      text, the beat list, the connectors and the answer all read from them, so
      the words on screen cannot drift out of step with the animation. */
 
+  /* Beat boundaries as a fraction of the scene's scroll. The reading time each
+     beat gets is (next.at - this.at) x the scene's 280vh of travel, so these
+     numbers ARE the pacing — there is no separate duration to tune.
+
+     Rebalanced 2026-08-11: gather and answer used to hold 0.20 and 0.18, which at
+     the old 300vh was 40vh and 36vh of scroll for the two beats that carry the
+     point of the whole section — four connectors drawn and an answer written in
+     less than a screen each. They now hold 0.26 and 0.30 of a longer scene: 73vh
+     and 84vh, i.e. 1.8x and 2.3x the reading time. Search keeps its old absolute
+     pace (0.40 x 280vh = 112vh, unchanged) because the sweep was never the
+     problem. */
   var BEATS = [
     { at: 0,    label: 'Your question' },
-    { at: 0.06, label: 'Reading your document' },
-    { at: 0.62, label: 'Keeping the passages that match' },
-    { at: 0.82, label: 'Answering — from those passages only' },
+    { at: 0.04, label: 'Reading your document' },
+    { at: 0.44, label: 'Keeping the passages that match' },
+    { at: 0.70, label: 'Answering — from those passages only' },
   ];
+
+  /* Beat 4 has its own three-part choreography, because 0.30 of the scene spent
+     watching a finished card is dead scroll: the answer arrives, then its
+     citations, then the page it was read from comes into focus. */
+  var ANSWER_CITES_AT = 0.08;   // after beat 4 starts
+  var FINALE_AT = 0.12;         // when the lens opens out over the whole page
+  var FINALE_SPAN = 0.13;
 
   function initScene() {
     var scene = document.getElementById('retrieve-scene');
@@ -275,17 +388,18 @@
     function render(p) {
       var sr = stage.getBoundingClientRect();
       var pos = lensAt(p, sr.width, sr.height);
-      var r = p < 0.04 ? (p / 0.04) * rBase : rBase;
-      if (p > BEATS[3].at) {
-        // The finale, on the same beat as the answer: the circle grows past the
-        // stage so the whole page ends up in focus — "all of it was read", not
-        // "here is the bit we liked". It has to *finish* inside the beat; a
-        // finale still expanding at the end of the scroll leaves the reader
-        // looking at a lens-shaped hole with the answer already written.
-        var t = Math.min((p - BEATS[3].at) / 0.1, 1);
+      var finale = BEATS[3].at + FINALE_AT;
+      var r = p < 0.03 ? (p / 0.03) * rBase : rBase;
+      if (p > finale) {
+        // The circle grows past the stage so the whole page ends up in focus —
+        // "all of it was read", not "here is the bit we liked". It has to
+        // *finish* inside the beat; a finale still expanding at the end of the
+        // scroll leaves the reader looking at a lens-shaped hole with the answer
+        // already written.
+        var t = Math.min((p - finale) / FINALE_SPAN, 1);
         r = rBase + t * t * Math.hypot(sr.width, sr.height) * 1.15;
       }
-      lens.style.opacity = p > BEATS[3].at ? '0' : '';
+      lens.style.opacity = p > finale ? '0' : '';
 
       stage.style.setProperty('--cx', pos.x.toFixed(1) + 'px');
       stage.style.setProperty('--cy', pos.y.toFixed(1) + 'px');
@@ -307,14 +421,18 @@
       }
 
       // Beat 3: one connector per match, drawn in the order they were found.
+      // One connector per match, drawn in the order they were found. Each gets its
+      // own slice of beat 3 plus a little overlap, so the strokes read as a
+      // sequence rather than four lines appearing together.
       var span = BEATS[3].at - BEATS[2].at;
       for (var k = 0; k < paths.length; k++) {
         var from = BEATS[2].at + (k / paths.length) * span;
-        var q = clamp01((p - from) / (span / paths.length + 0.02));
+        var q = clamp01((p - from) / (span / paths.length + 0.03));
         paths[k].style.strokeDashoffset = String(1 - q);
       }
 
       answer.classList.toggle('surfaced', p > BEATS[3].at);
+      answer.classList.toggle('cited', p > BEATS[3].at + ANSWER_CITES_AT);
 
       var b = 0;
       for (var m = 0; m < BEATS.length; m++) if (p >= BEATS[m].at) b = m;
@@ -723,7 +841,97 @@
     });
   }
 
-  /* --- 7. hero counters and the orb idle switch ------------------------------ */
+  /* --- 7. the mode disclosures -----------------------------------------------
+     The six retrieval modes are <details> elements, so click, tap, Enter, Space
+     and Escape already work and they open with JavaScript disabled. This adds
+     hover as a shortcut on top — the thing actually asked for — with the two
+     details that make hover-to-open bearable rather than twitchy:
+
+       * an intent delay in, so crossing a card on the way somewhere else does
+         not open it;
+       * a forgiveness delay out, so the pointer may cross the gap between the
+         summary and the panel without the panel vanishing underneath it.
+
+     A panel opened by clicking is PINNED: it does not close when the pointer
+     leaves, because a click is a decision and a decision should not be undone by
+     a mouse movement. Hover only ever manages panels hover opened. */
+
+  var MODE_OPEN_DELAY = 130;
+  var MODE_CLOSE_DELAY = 300;
+
+  function initModes() {
+    var list = document.querySelector('.modes');
+    if (!list) return;
+    var modes = [].slice.call(list.querySelectorAll('details.mode'));
+    if (!modes.length) return;
+
+    var openTimer = null;
+    var closeTimer = null;
+    var touched = false;
+
+    // One tap and this is not a mouse session: on touch, `mouseenter` fires on
+    // tap and would fight the native toggle.
+    window.addEventListener('touchstart', function () {
+      touched = true;
+    }, { passive: true, once: true });
+
+    function closeHoverOpened(except) {
+      modes.forEach(function (m) {
+        if (m !== except && m.open && m.dataset.hoverOpen === 'true') {
+          m.open = false;
+          delete m.dataset.hoverOpen;
+        }
+      });
+    }
+
+    modes.forEach(function (mode) {
+      // A click is a decision: drop the hover flag so leaving cannot undo it.
+      mode.addEventListener('click', function () {
+        clearTimeout(openTimer);
+        clearTimeout(closeTimer);
+        delete mode.dataset.hoverOpen;
+      });
+
+      mode.addEventListener('mouseenter', function () {
+        if (touched || !FINE.matches) return;
+        clearTimeout(closeTimer);
+        clearTimeout(openTimer);
+        if (mode.open) return;
+        openTimer = setTimeout(function () {
+          // Accordion, but only over hover-opened panels — a pinned one stays.
+          closeHoverOpened(mode);
+          mode.open = true;
+          mode.dataset.hoverOpen = 'true';
+        }, MODE_OPEN_DELAY);
+      });
+
+      mode.addEventListener('mouseleave', function () {
+        if (touched || !FINE.matches) return;
+        clearTimeout(openTimer);
+        if (mode.dataset.hoverOpen !== 'true') return;
+        closeTimer = setTimeout(function () {
+          mode.open = false;
+          delete mode.dataset.hoverOpen;
+        }, MODE_CLOSE_DELAY);
+      });
+    });
+
+    // Escape closes whatever is open and returns focus to its summary, which is
+    // what a keyboard user expects from a disclosure they just opened.
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      var open = modes.filter(function (m) { return m.open; });
+      if (!open.length) return;
+      open.forEach(function (m) {
+        m.open = false;
+        delete m.dataset.hoverOpen;
+      });
+      var summary = open[0].querySelector('summary');
+      if (summary) summary.focus();
+    });
+  }
+
+  /* --- 6. hero counters and the orb idle switch ------------------------------ */
 
   /* The four numbers under the hero are the page's claim; counting them up is
      the one entrance animation worth keeping here, because it draws the eye to
@@ -807,6 +1015,7 @@
     initHero();
     initFacts();
     initHeroIdle();
+    initModes();
     initScene();
     initArchitecture();
     initSteps();
