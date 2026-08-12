@@ -125,3 +125,52 @@ Rules worth keeping:
 - Both set pieces decide by **measurement** whether to pin themselves, and fall
   back to a complete still telling when they would not fit. Pinning something the
   reader has to scroll inside explains nothing.
+
+## Colour
+
+Colour is **generated, not chosen**. `scripts/generate-palette.mjs` owns every colour value in
+`assets/css/styles.css`, writing them between the `PALETTE-BLOCKS` markers — do not hand-edit
+that region.
+
+```bash
+node scripts/generate-palette.mjs                    # list configurations
+node scripts/generate-palette.mjs sextant            # write one into styles.css
+node scripts/generate-palette.mjs sextant --verify    # print every enforced ratio, write nothing
+```
+
+A configuration contains **no hex**: only OKLCH hue angles and chroma targets, which are the
+part that is a design decision. Everything else is derived, and every derived value is walked
+along its lightness axis until it measurably meets its obligation.
+
+### Why it works this way
+
+The stylesheet used to have 22 WCAG AA text failures, and they were not a hue problem. One
+token — `--text-faint` — was placed on three different surfaces and failed at three different
+ratios (3.03, 3.22, 3.33), because nothing had decided what job that token had. A prettier
+palette with the same role assignment reproduces every failure in new colours.
+
+So each scale is twelve steps with a fixed job, following Radix Colors' step semantics
+(1-2 backgrounds · 3-5 component backgrounds · 6-8 borders · 9-10 solid fills · 11 accessible
+low-contrast text · 12 high-contrast text). The values are generated rather than taken from
+Radix because Radix targets APCA, which disagrees with WCAG 2.x at the edges; the gate here is
+stated in WCAG terms, so the WCAG number is the one computed.
+
+Three rules in the generator are load-bearing:
+
+- **Text is verified against every surface it can land on** — steps 1-4 *and* the section
+  washes — not just against the page background. That single change is what fixed the original
+  22 failures.
+- **Three accessible text levels, all of which pass.** A 12-step scale affords two (11 and 12);
+  this page's information design needs three, so the third is generated *inward* at AAA 7:1
+  rather than by going lighter than step 11. Going lighter is the bug this replaces.
+- **Separation for colour-blind readers is solved in simulated space, not authored space.**
+  Dichromat simulation changes lightness — green loses it, purple gains it — so two colours set
+  0.15 apart in lightness can cross over and land on top of one another. The syntax tokens and
+  the brand-hue biases are both solved against Viénot/Brettel/Mollon simulations of
+  deuteranopia and protanopia. Two syntax tokens additionally carry a non-colour channel
+  (comment is italic, keyword is bold), because seven hues genuinely cannot be told apart on
+  one surface and a syntax highlighter cannot add labels.
+
+The favicon is the one colour that cannot be a token — a `data:` URI has no stylesheet to
+resolve custom properties against — so the generator prints the three values to sync whenever
+the palette changes.
