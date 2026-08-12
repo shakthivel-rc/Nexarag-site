@@ -37,8 +37,41 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # ALL FOUR ACTION VERSIONS BELOW ARE LOAD-BEARING, and the reason is not
+      # "keep dependencies fresh".
+      #
+      # GitHub deprecated the Node 20 runtime and, from 2026-06-02, force-runs
+      # actions that declare `runs.using: node20` on Node 24 instead. Every one
+      # of these four declared node20 at the versions previously pinned here, so
+      # each was being executed on a runtime it was never built or tested for —
+      # which is exactly what the run log said, naming all four:
+      #
+      #   "Node.js 20 is deprecated. The following actions target Node.js 20 but
+      #    are being forced to run on Node.js 24: actions/checkout@v4,
+      #    actions/configure-pages@v5, actions/deploy-pages@v4,
+      #    actions/upload-pages-artifact@v3"
+      #
+      # The visible symptom was not a deprecation warning but a TLS failure in
+      # the last step — `HttpError: self-signed certificate` raised from the
+      # octokit bundled inside deploy-pages, followed by "Creating Pages
+      # deployment failed". That error is OpenSSL's DEPTH_ZERO_SELF_SIGNED_CERT:
+      # certificate verification failed against the CA store the Node process
+      # was using. Node 24 ships a different bundled root store and different
+      # TLS defaults from Node 20, and the HTTP stack vendored into a node20
+      # action is on the wrong side of that change.
+      #
+      # These majors are the ones published to run on Node 24 natively
+      # (configure-pages v6 and deploy-pages v5 both say "upgrade to node 24" in
+      # their release notes), so nothing is being force-migrated any more.
+      #
+      # If the TLS error ever returns, the correct escalation is
+      # `NODE_OPTIONS: --use-system-ca` on the failing step — that makes Node
+      # trust the runner's own CA store, which is the store that has the right
+      # roots. Never reach for NODE_TLS_REJECT_UNAUTHORIZED=0: it does not fix
+      # verification, it switches it off, and it would do so on the step holding
+      # a deployment token.
       - name: Check out
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Deliberately no `enablement: true` here. It looks like it would remove
       # the one-time manual step below, but the automatic GITHUB_TOKEN cannot
@@ -47,14 +80,34 @@ jobs:
       # accessible by integration" and buries the real cause under a second,
       # less obvious error. Enable Pages once by hand instead.
       - name: Configure Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
+      # Keep this in step with deploy-pages: a mismatch between the artifact
+      # backend the upload writes to and the one the deploy reads from does not
+      # fail loudly, it fails with "No artifact_url provided", which reads like
+      # the upload never happened.
+      #
+      # `include-hidden-files: true` is NOT tidy-up — it restores v3 behaviour.
+      # v5 added the input and defaults it to false, which appends
+      # `--exclude=.[^/]*` to the tar and therefore drops EVERY dotfile,
+      # including `.nojekyll`. v3 excluded only `.git` and `.github`. Without
+      # this line the version bump would quietly change what gets published, not
+      # just which runtime publishes it.
+      #
+      # `.nojekyll` costs nothing today — this site has no `_`-prefixed paths and
+      # no Liquid syntax for Jekyll to mangle — but it is deliberately committed,
+      # and the failure it prevents arrives long after the change that removed
+      # it: the first `_partials/` directory, or the first code sample on the
+      # page containing `{{`, would 404 or render empty with nothing pointing
+      # back to a workflow edit.
       - name: Upload site
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
-          # The site root. Change to './docs' if you nest it.
+          # The site root. Change to './docs' if you nest it. `.git` and
+          # `.github` are always excluded by the action itself, so '.' is safe.
           path: '.'
+          include-hidden-files: true
 
       - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
