@@ -240,6 +240,41 @@ function pinned({ hue, chroma, bg, target, mode, seedL }) {
    different palette. Only the brand hues vary. */
 const STATUS = { warn: { hue: 70, chroma: 0.15 }, dang: { hue: 22, chroma: 0.18 } };
 
+/* THE POINTER.
+ *
+ * The lens cursor replaces the system pointer, so its visibility is not a matter of
+ * taste — it is the only thing telling the reader where they are. It used to be
+ * painted in `--primary` at 72% alpha over a 1.5px border with a 55%-alpha halo, and
+ * measured on screen that came to 25 of 1,183 cursor pixels clearing 3:1 on a card in
+ * the light theme, and 0 of 117 over the code island in the dark theme. A pointer
+ * nobody can find is the same defect as no pointer at all, which is the one thing the
+ * note above `.has-lens-cursor` in styles.css exists to prevent.
+ *
+ * THE INK IS A STATED CHOICE, NOT A DERIVED VALUE. This is the only literal hex in
+ * this file, and it is here because the colour was specified rather than computed.
+ * It is still VERIFIED by the obligations below — being chosen does not exempt it.
+ *
+ * IT IS TWO-TONE, AND WITH THIS INK THE HALO IS DOING MOST OF THE WORK. #45dfca is a
+ * light mint: 11:1 against the dark code island and 8.6:1 against the dark theme's
+ * surfaces, but only 1.3–1.6:1 against a light page — on its own it would be close to
+ * invisible in the light theme, which is the very complaint that started this. So the
+ * halo is the DARK end of the neutral scale in both modes, full opacity, sandwiching
+ * the ink line on both sides. On a light page the dark rim carries the shape (13–16:1)
+ * and the mint reads as its colour; on a dark surface the mint carries it and the rim
+ * gives it an edge. That is the same arrangement as a light-coloured OS pointer, which
+ * is a pale shape with a black outline for exactly this reason.
+ *
+ * Which is why the obligation below is stated on the PAIR rather than on the ink: for
+ * every surface, at least one of the two tones must clear 4.5:1, and the two must
+ * clear 3:1 against each other so the shape reads as a shape. An obligation on the ink
+ * alone would reject this colour outright while a correctly-built two-tone mark using
+ * it is comfortably visible everywhere.
+ *
+ * Note the ink coincides with the dark theme's accent solid (hue2 step 9), so in dark
+ * mode the pointer shares a colour with accent fills rather than standing apart from
+ * the palette. That is a consequence of the choice, not a fault in it. */
+const CURSOR_INK = '#45dfca';
+
 const CONFIGS = {};
 
 export function defineConfig(id, cfg) { CONFIGS[id] = { id, ...cfg }; }
@@ -538,7 +573,15 @@ function buildTheme(cfg, mode) {
   const ringPage = h1.steps[8];
   const ringOnCode = pinned({ hue: hues[0].hue, chroma: 0.16, bg: codeBg, target: 3.0, mode: 'dark' });
 
-  return { gray, hues, textMid, washes, washBeds, surfaces, surfaceHexes, codeBg, codeBorder, codeText, codeMuted, codeTokens, status, warnScale, dangScale, ringPage, ringOnCode };
+  /* The pointer — see CURSOR_INK above. The halo is the DARK end of the neutral scale
+     in whichever mode this is (step 12 in light, step 1 in dark), picked by luminance
+     rather than by index so it cannot silently invert if the scale's direction ever
+     changes. It has to be the dark end in BOTH modes because the ink is light in both. */
+  const cursorHalo = [gray.steps[0], gray.steps[11]]
+    .reduce((a, b) => (relLum(a) < relLum(b) ? a : b));
+  const cursorInk = CURSOR_INK;
+
+  return { gray, hues, textMid, washes, washBeds, surfaces, surfaceHexes, codeBg, codeBorder, codeText, codeMuted, codeTokens, status, warnScale, dangScale, ringPage, ringOnCode, cursorInk, cursorHalo };
 }
 
 /* ------------------------------------------------------------------ CSS emission */
@@ -618,6 +661,12 @@ function emitBlock(cfg, t, indent) {
   put('--focus-ring', t.ringPage);
   put('--focus-ring-on-code', t.ringOnCode);
   gap();
+  L.push(`${p}/* the pointer: two-tone, constant across configurations. The ink is a stated`);
+  L.push(`${p}   choice; the halo is the dark end of the neutral scale. On every surface at`);
+  L.push(`${p}   least one of the two clears 4.5:1 — see CURSOR_INK in the generator. */`);
+  put('--cursor-ink', t.cursorInk);
+  put('--cursor-halo', t.cursorHalo);
+  gap();
   L.push(`${p}/* status hues are constant across configurations — see STATUS in the generator */`);
   put('--warning', t.warnScale.steps[10]);
   put('--warning-solid', t.warnScale.steps[8]);
@@ -693,6 +742,22 @@ function verify(cfg) {
     t.codeTokens.forEach((c) => check(`code ${c.token} on code bg`, c.hex, NEED.step11, [t.codeBg]));
     check('focus ring vs page', t.ringPage, 3.0, [beds[0]]);
     check('focus ring vs code island', t.ringOnCode, 3.0, [t.codeBg]);
+    /* The pointer is a PAIR, so the obligation is on the pair: every surface it can
+       cross must be cleared by at least one of the two tones. Checking the ink alone
+       is the wrong test for a two-tone mark — it would reject a pale ink that a dark
+       rim makes perfectly visible, and it would pass a mid-tone ink whose rim adds
+       nothing on the code island. */
+    const cursorBeds = beds.concat([t.codeBg]);
+    const pairWorst = Math.min(...cursorBeds.map((b) =>
+      Math.max(contrast(t.cursorInk, b), contrast(t.cursorHalo, b))));
+    const pairBed = cursorBeds.find((b) =>
+      Math.max(contrast(t.cursorInk, b), contrast(t.cursorHalo, b)) === pairWorst);
+    rows.push({
+      mode, label: 'cursor pair (ink OR halo) on every surface it crosses',
+      fg: `${t.cursorInk}/${t.cursorHalo}`, bed: pairBed,
+      ratio: +pairWorst.toFixed(2), need: 4.5, pass: pairWorst >= 4.5,
+    });
+    check('cursor ink vs its own halo', t.cursorInk, 3.0, [t.cursorHalo]);
 
     /* Mutual distinguishability of the syntax set — measured through BOTH dichromat
        simulations, because a syntax highlighter is the one thing on this page that cannot

@@ -88,6 +88,37 @@ pages and the failure only shows up after deploy.
   The copy button is injected by JS; the block renders fine without it.
 - **A new section** — add the `<section>` and a matching entry in the sidebar
   `.toc`. Scroll-spy picks it up automatically from the `href`.
+- **The six retrieval-mode flowcharts** — do not hand-edit the SVG in
+  `index.html`. It is generated:
+
+  ```bash
+  node scripts/generate-flows.mjs            # write all six into index.html
+  node scripts/generate-flows.mjs --stdout   # print them, change nothing
+  node scripts/generate-flows.mjs --check    # fail if index.html is out of date
+  ```
+
+  Edit the `MODES` array in the script; it writes between the
+  `<!-- FLOW:<id>:START -->` / `:END` markers inside each `.mode__flow` div. Two
+  rules in there are load-bearing:
+
+  - **`lines` is verbatim, `subs` is prose.** A formula's line breaks are meaning,
+    so `lines` is never re-wrapped and a line that does not fit throws at generate
+    time. `subs` are written as an array only for readability and are always
+    re-flowed to whatever box they end up in — the same array is reused in boxes
+    268 and 118 units wide.
+  - **Every box is emitted in a `<g>` with its own labels.** That is what makes a
+    fill a *surface* rather than an informational graphic, which is the difference
+    between exempt and owing 3:1 under SC 1.4.11. Flat output made the contrast
+    audit report five failures per theme for boxes whose labels sit at 16:1.
+
+  The numbers and formulas are read off `Nexarag-api/rag/service.py`, and the
+  function each row describes is named in a comment beside it. If retrieval
+  changes, these change.
+- **A mode's detail panel** — the copy lives in `index.html` inside
+  `.mode__panel`. With scripting on, that element is *moved* into the shared
+  `<dialog class="mmodal">` when the mode is opened and moved back on close, so
+  there is one copy of it in the document; with scripting off the `<details>`
+  expands in place. Both layouts are styled and both are tested.
 
 ## Motion
 
@@ -157,6 +188,20 @@ stated in WCAG terms, so the WCAG number is the one computed.
 
 Three rules in the generator are load-bearing:
 
+- **The pointer is verified as a PAIR, not as a colour.** The lens cursor replaces the system
+  pointer, so its visibility is not stylistic. `--cursor-ink` is `#45dfca` — the one literal hex
+  in the generator, because it was specified rather than computed — and `--cursor-halo` is the
+  dark end of the neutral scale in both themes. The obligation is that for every surface the
+  pointer crosses (page steps, section washes, the dark code island) **at least one of the two
+  tones** clears 4.5:1, and that the two clear 3:1 against each other so the shape reads.
+  Checking the ink alone would be the wrong test: the mint is 11:1 on the code island but only
+  1.3–1.6:1 on a light page, so in the light theme the near-black halo carries the shape and the
+  mint supplies the colour — the arrangement every pale OS pointer uses. The widths are part of
+  it: 3px of ink between 1px hairlines, because at 1.5px halos the near-black outweighed the
+  mint and the pointer read as a black ring. It was previously the brand colour at 72% alpha,
+  which measured 25 of 1,183 visible pixels on a light card and **0 of 117** over the code
+  island in the dark theme. Alpha is what made that possible: a translucent pointer takes its
+  contrast from whatever it is over.
 - **Text is verified against every surface it can land on** — steps 1-4 *and* the section
   washes — not just against the page background. That single change is what fixed the original
   22 failures.

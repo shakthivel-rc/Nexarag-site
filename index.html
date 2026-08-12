@@ -340,10 +340,13 @@
       <h3 id="modes">The six modes</h3>
       <!-- The lens catalogues the available strategies: one sweep per entry, in
            sequence, each name lighting up as the light passes over it. -->
-      <!-- Each mode is a <details>. That gives click, tap, keyboard and Escape for
-           free and still opens with JavaScript disabled; hover is added on top as a
-           shortcut, never as the only way in — a hover-only panel does not exist on a
-           phone. An open panel spans the whole grid row (see .modes details[open]),
+      <!-- Each mode is a <details>, opened by CLICK. The element gives click, tap and
+           Enter/Space for free, and still opens with JavaScript disabled; the only
+           script is the accordion and Escape (initModes in lens.js). Hover used to
+           open these too and no longer does — a panel that opens because the pointer
+           crossed it opens things the reader did not ask for, and needed an open
+           delay, a close delay, a touch guard and a pinned-vs-hovered flag to stop it
+           flapping. An open panel spans the whole grid row (see .modes details[open]),
            because a 300px card cannot hold a flowchart. -->
       <div class="modes reveal reveal--catalogue">
         <details class="mode lockon" style="--mi:0" data-mode="contextual-hybrid">
@@ -352,12 +355,78 @@
             <span class="mode__name">Contextual Hybrid</span>
             <p class="mode__gist">Matches your wording against each passage and the context around it. The default.</p>
             <span class="mode__more" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              Details
+              <svg class="mode__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4.5h-5v5"/><path d="M14.5 4.5h5v5"/><path d="M9.5 19.5h-5v-5"/><path d="M14.5 19.5h5v-5"/></svg>
+              See how it works
             </span>
           </summary>
           <div class="mode__panel">
-            <div class="mode__flow" data-flow="contextual-hybrid"></div>
+            <div class="mode__flow" data-flow="contextual-hybrid">
+            <!-- FLOW:contextual-hybrid:START -->
+<svg class="flow" viewBox="0 0 420 695.5" role="img" aria-labelledby="flow-contextual-hybrid-t flow-contextual-hybrid-d">
+<title id="flow-contextual-hybrid-t">Contextual Hybrid — how a passage is scored</title>
+<desc id="flow-contextual-hybrid-d">Your question is split into terms. Every passage in the knowledge base is scored on term overlap against its own text plus a six-line context header naming its base, file, title, modality and position. The score is the sum of term-frequency products divided by passage length, plus query coverage times three, plus two if the whole question appears verbatim and half a point if a matched term is in the document title. Passages scoring zero are dropped, the rest sorted, and the top five kept. If the document carries embeddings the ranking is fused with a cosine ranking. Finally the evidence is gated: unless the top three passages cover 35% of the question, the answer is refused and the unmatched words are named.</desc>
+<defs><marker id="fa-contextual-hybrid" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.4" markerHeight="5.4" orient="auto-start-reverse"><path class="f-arrow" d="M0 0 10 5 0 10z"/></marker></defs>
+<path class="f-edge" d="M278 542H287" marker-end="url(#fa-contextual-hybrid)"/>
+<path class="f-edge" d="M144 63.5V92.5" marker-end="url(#fa-contextual-hybrid)"/>
+<path class="f-edge" d="M144 178V207" marker-end="url(#fa-contextual-hybrid)"/>
+<path class="f-edge" d="M144 325.5V354.5" marker-end="url(#fa-contextual-hybrid)"/>
+<path class="f-edge" d="M144 391.5V420.5" marker-end="url(#fa-contextual-hybrid)"/>
+<path class="f-edge" d="M144 481V510" marker-end="url(#fa-contextual-hybrid)"/>
+<path class="f-edge" d="M144 573V602" marker-end="url(#fa-contextual-hybrid)"/>
+<g class="f-node">
+<rect class="f-box f-box--accent" x="10" y="8" width="268" height="55.5" rx="9"/>
+<text class="f-lab" x="21" y="31.04">Your question</text>
+<text class="f-sub" x="21" y="51.31">split into terms · repeats counted</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="10" y="93.5" width="268" height="84.5" rx="9"/>
+<text class="f-lab" x="21" y="116.54">Every passage in the base</text>
+<text class="f-sub" x="21" y="136.81">scored against its text plus a</text>
+<text class="f-sub" x="21" y="151.31">6-line header: base, file, title,</text>
+<text class="f-sub" x="21" y="165.81">modality, position</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--formula" x="10" y="208" width="268" height="117.5" rx="9"/>
+<text class="f-head" x="21" y="227.14">SCORE</text>
+<text class="f-mono" x="21" y="247.09">Σ(passage tf × query tf) ÷ length</text>
+<text class="f-mono" x="21" y="262.59">+ coverage × 3.0</text>
+<text class="f-mono" x="21" y="278.09">+ 2.0  question appears verbatim</text>
+<text class="f-mono" x="21" y="293.59">+ 0.5  matched term is in the title</text>
+<text class="f-sub" x="21" y="313.31">no shared term at all → 0, dropped</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="10" y="355.5" width="268" height="36" rx="9"/>
+<text class="f-lab" x="21" y="378.54">Sort, keep the top 5</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--dash" x="10" y="421.5" width="268" height="59.5" rx="9"/>
+<text class="f-sub" x="21" y="440.81">If the document was embedded: fused</text>
+<text class="f-sub" x="21" y="455.31">with the cosine ranking by</text>
+<text class="f-sub" x="21" y="469.81">reciprocal rank</text>
+</g>
+<g class="f-node">
+<polygon class="f-box" points="26,511 262,511 278,542 262,573 26,573 10,542"/>
+<text class="f-lab" x="32" y="538.04">Do the top 3 passages cover</text>
+<text class="f-lab" x="32" y="556.04">35% of your words?</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--stop" x="292" y="493.5" width="118" height="97" rx="16"/>
+<text class="f-lane" x="303" y="514.98">Refuse</text>
+<text class="f-sub" x="303" y="534.81">and name</text>
+<text class="f-sub" x="303" y="549.31">which of your</text>
+<text class="f-sub" x="303" y="563.81">words matched</text>
+<text class="f-sub" x="303" y="578.31">nothing</text>
+</g>
+<text class="f-tag" text-anchor="end" x="288" y="537">no</text>
+<g class="f-node">
+<rect class="f-box f-box--good" x="10" y="603" width="268" height="54" rx="16"/>
+<text class="f-lab" x="21" y="626.04">Answer, from those passages,</text>
+<text class="f-lab" x="21" y="644.04">with citations</text>
+</g>
+<text class="f-note" x="12" y="680.31">The default mode, and the one every other mode is built out of.</text>
+</svg>
+            <!-- FLOW:contextual-hybrid:END -->
+            </div>
             <div class="mode__detail">
               <p class="mode__heading">How it works</p>
               <ol class="mode__steps">
@@ -377,12 +446,89 @@
             <span class="mode__name">RAG-Fusion</span>
             <p class="mode__gist">Searches several rephrasings of your question and merges the rankings.</p>
             <span class="mode__more" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              Details
+              <svg class="mode__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4.5h-5v5"/><path d="M14.5 4.5h5v5"/><path d="M9.5 19.5h-5v-5"/><path d="M14.5 19.5h5v-5"/></svg>
+              See how it works
             </span>
           </summary>
           <div class="mode__panel">
-            <div class="mode__flow" data-flow="rag-fusion"></div>
+            <div class="mode__flow" data-flow="rag-fusion">
+            <!-- FLOW:rag-fusion:START -->
+<svg class="flow" viewBox="0 0 420 818.5" role="img" aria-labelledby="flow-rag-fusion-t flow-rag-fusion-d">
+<title id="flow-rag-fusion-t">RAG-Fusion — four phrasings, merged by rank</title>
+<desc id="flow-rag-fusion-d">Up to four phrasings of your question are built by rule, with no language model involved: the question as typed, its distinct words, those words reversed, and the first three of them. The last two exist only if the question has more than two distinct words. Each phrasing runs a full Contextual Hybrid search eight passages deep. Every passage then scores one over sixty plus its rank, from each phrasing that found it, and the totals decide the top five — so agreement across phrasings beats a single strong hit. The same evidence gate as every other mode follows.</desc>
+<defs><marker id="fa-rag-fusion" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.4" markerHeight="5.4" orient="auto-start-reverse"><path class="f-arrow" d="M0 0 10 5 0 10z"/></marker></defs>
+<path class="f-edge" d="M278 665H287" marker-end="url(#fa-rag-fusion)"/>
+<path class="f-edge" d="M144 44V73" marker-end="url(#fa-rag-fusion)"/>
+<path class="f-edge" d="M43.5 273.5C43.5 295.5 144 295.5 144 311.5"/>
+<path class="f-edge" d="M110.5 273.5C110.5 295.5 144 295.5 144 311.5"/>
+<path class="f-edge" d="M177.5 273.5C177.5 295.5 144 295.5 144 311.5"/>
+<path class="f-edge" d="M244.5 273.5C244.5 295.5 144 295.5 144 311.5"/>
+<path class="f-edge" d="M144 309.5V316.5" marker-end="url(#fa-rag-fusion)"/>
+<path class="f-edge" d="M144 400V429" marker-end="url(#fa-rag-fusion)"/>
+<path class="f-edge" d="M144 514.5V543.5" marker-end="url(#fa-rag-fusion)"/>
+<path class="f-edge" d="M144 604V633" marker-end="url(#fa-rag-fusion)"/>
+<path class="f-edge" d="M144 696V725" marker-end="url(#fa-rag-fusion)"/>
+<g class="f-node">
+<rect class="f-box f-box--accent" x="10" y="8" width="268" height="36" rx="9"/>
+<text class="f-lab" x="21" y="31.04">Your question</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="10" y="74" width="268" height="199.5" rx="9"/>
+<text class="f-head" x="21" y="93.14">FOUR PHRASINGS, BUILT BY RULE</text>
+<text class="f-lane" x="21" y="113.48">as you typed it</text>
+<text class="f-lane" x="21" y="135.48">its distinct words</text>
+<text class="f-lane" x="21" y="157.48">those words, reversed</text>
+<text class="f-lane" x="21" y="179.48">the first three of them</text>
+<line class="f-rule" x1="21" y1="187" x2="267" y2="187"/>
+<text class="f-sub" x="21" y="204.31">The last two exist only if the</text>
+<text class="f-sub" x="21" y="218.81">question has more than two</text>
+<text class="f-sub" x="21" y="233.31">distinct words. Each phrasing runs</text>
+<text class="f-sub" x="21" y="247.81">its own Contextual Hybrid search,</text>
+<text class="f-sub" x="21" y="262.31">8 passages deep.</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--formula" x="10" y="317.5" width="268" height="82.5" rx="9"/>
+<text class="f-head" x="21" y="336.64">MERGE BY RANK, NOT BY SCORE</text>
+<text class="f-mono" x="21" y="356.59">each passage scores</text>
+<text class="f-mono" x="21" y="372.09">1 / (60 + its rank)</text>
+<text class="f-mono" x="21" y="387.59">from every phrasing that found it</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="10" y="430" width="268" height="84.5" rx="9"/>
+<text class="f-lab" x="21" y="453.04">Sort by the totals, keep 5</text>
+<text class="f-sub" x="21" y="473.31">a passage several phrasings agree</text>
+<text class="f-sub" x="21" y="487.81">on beats one a single phrasing</text>
+<text class="f-sub" x="21" y="502.31">loved</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--dash" x="10" y="544.5" width="268" height="59.5" rx="9"/>
+<text class="f-sub" x="21" y="563.81">If the document was embedded: fused</text>
+<text class="f-sub" x="21" y="578.31">with the cosine ranking by</text>
+<text class="f-sub" x="21" y="592.81">reciprocal rank</text>
+</g>
+<g class="f-node">
+<polygon class="f-box" points="26,634 262,634 278,665 262,696 26,696 10,665"/>
+<text class="f-lab" x="32" y="661.04">Do the top 3 passages cover</text>
+<text class="f-lab" x="32" y="679.04">35% of your words?</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--stop" x="292" y="616.5" width="118" height="97" rx="16"/>
+<text class="f-lane" x="303" y="637.98">Refuse</text>
+<text class="f-sub" x="303" y="657.81">and name</text>
+<text class="f-sub" x="303" y="672.31">which of your</text>
+<text class="f-sub" x="303" y="686.81">words matched</text>
+<text class="f-sub" x="303" y="701.31">nothing</text>
+</g>
+<text class="f-tag" text-anchor="end" x="288" y="660">no</text>
+<g class="f-node">
+<rect class="f-box f-box--good" x="10" y="726" width="268" height="54" rx="16"/>
+<text class="f-lab" x="21" y="749.04">Answer, from those passages,</text>
+<text class="f-lab" x="21" y="767.04">with citations</text>
+</g>
+<text class="f-note" x="12" y="803.31">No model rewrites anything. The four phrasings are string operations.</text>
+</svg>
+            <!-- FLOW:rag-fusion:END -->
+            </div>
             <div class="mode__detail">
               <p class="mode__heading">How it works</p>
               <ol class="mode__steps">
@@ -402,12 +548,99 @@
             <span class="mode__name">GraphRAG</span>
             <p class="mode__gist">Boosts passages naming the same parts, people or terms as your question.</p>
             <span class="mode__more" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              Details
+              <svg class="mode__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4.5h-5v5"/><path d="M14.5 4.5h5v5"/><path d="M9.5 19.5h-5v-5"/><path d="M14.5 19.5h5v-5"/></svg>
+              See how it works
             </span>
           </summary>
           <div class="mode__panel">
-            <div class="mode__flow" data-flow="graph-rag"></div>
+            <div class="mode__flow" data-flow="graph-rag">
+            <!-- FLOW:graph-rag:START -->
+<svg class="flow" viewBox="0 0 420 832" role="img" aria-labelledby="flow-graph-rag-t flow-graph-rag-d">
+<title id="flow-graph-rag-t">GraphRAG — a capped re-rank on shared names</title>
+<desc id="flow-graph-rag-d">Two things run. A normal Contextual Hybrid search returns eight passages, and separately your words are matched against the recurring names extracted from your documents at indexing time. Each matched name lends affinity to the passages that mention it. That affinity becomes a boost that saturates rather than accumulating, and is capped at 35% of the best lexical score this question produced — so it can reorder the ranking but never replace it. A passage with no lexical score at all can enter on boost alone. No graph is traversed.</desc>
+<defs><marker id="fa-graph-rag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.4" markerHeight="5.4" orient="auto-start-reverse"><path class="f-arrow" d="M0 0 10 5 0 10z"/></marker></defs>
+<path class="f-edge" d="M278 664H287" marker-end="url(#fa-graph-rag)"/>
+<path class="f-edge" d="M144 44V59"/>
+<path class="f-edge" d="M106.5 59H313.5"/>
+<path class="f-edge" d="M106.5 59V73" marker-end="url(#fa-graph-rag)"/>
+<path class="f-edge" d="M313.5 59V73" marker-end="url(#fa-graph-rag)"/>
+<path class="f-edge" d="M106.5 156.5V171.5"/>
+<path class="f-edge" d="M313.5 156.5V171.5"/>
+<path class="f-edge" d="M106.5 171.5H313.5"/>
+<path class="f-edge" d="M144 171.5V185.5" marker-end="url(#fa-graph-rag)"/>
+<path class="f-edge" d="M144 347.5V376.5" marker-end="url(#fa-graph-rag)"/>
+<path class="f-edge" d="M144 447.5V476.5" marker-end="url(#fa-graph-rag)"/>
+<path class="f-edge" d="M144 513.5V542.5" marker-end="url(#fa-graph-rag)"/>
+<path class="f-edge" d="M144 603V632" marker-end="url(#fa-graph-rag)"/>
+<path class="f-edge" d="M144 695V724" marker-end="url(#fa-graph-rag)"/>
+<g class="f-node">
+<rect class="f-box f-box--accent" x="10" y="8" width="268" height="36" rx="9"/>
+<text class="f-lab" x="21" y="31.04">Your question</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="8" y="74" width="197" height="82.5" rx="9"/>
+<text class="f-lane" x="19" y="95.48">Lexical search</text>
+<text class="f-sub" x="19" y="115.31">Contextual Hybrid, top 8</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="215" y="74" width="197" height="82.5" rx="9"/>
+<text class="f-lane" x="226" y="95.48">Named things</text>
+<text class="f-sub" x="226" y="115.31">names pulled out at</text>
+<text class="f-sub" x="226" y="129.81">indexing time, matched</text>
+<text class="f-sub" x="226" y="144.31">by your words</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--formula" x="10" y="186.5" width="268" height="161" rx="9"/>
+<text class="f-head" x="21" y="205.64">A BOOST THAT CANNOT TAKE OVER</text>
+<text class="f-mono" x="21" y="225.59">ceiling = 35% of the best</text>
+<text class="f-mono" x="21" y="241.09">          lexical score</text>
+<text class="f-mono" x="21" y="256.59">w = Σ 1.0 + min(weight,5) × 0.1</text>
+<text class="f-mono" x="21" y="272.09">boost = ceiling × w / (w + 3.0)</text>
+<text class="f-sub" x="21" y="291.81">w is affinity: how many matched</text>
+<text class="f-sub" x="21" y="306.31">names a passage carries. It</text>
+<text class="f-sub" x="21" y="320.81">saturates — 38 names is not 38</text>
+<text class="f-sub" x="21" y="335.31">times the evidence of one.</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="10" y="377.5" width="268" height="70" rx="9"/>
+<text class="f-lab" x="21" y="400.54">Lexical score + boost</text>
+<text class="f-sub" x="21" y="420.81">a passage with no lexical score at</text>
+<text class="f-sub" x="21" y="435.31">all can enter on boost alone</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="10" y="477.5" width="268" height="36" rx="9"/>
+<text class="f-lab" x="21" y="500.54">Sort, keep the top 5</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--dash" x="10" y="543.5" width="268" height="59.5" rx="9"/>
+<text class="f-sub" x="21" y="562.81">If the document was embedded: fused</text>
+<text class="f-sub" x="21" y="577.31">with the cosine ranking by</text>
+<text class="f-sub" x="21" y="591.81">reciprocal rank</text>
+</g>
+<g class="f-node">
+<polygon class="f-box" points="26,633 262,633 278,664 262,695 26,695 10,664"/>
+<text class="f-lab" x="32" y="660.04">Do the top 3 passages cover</text>
+<text class="f-lab" x="32" y="678.04">35% of your words?</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--stop" x="292" y="615.5" width="118" height="97" rx="16"/>
+<text class="f-lane" x="303" y="636.98">Refuse</text>
+<text class="f-sub" x="303" y="656.81">and name</text>
+<text class="f-sub" x="303" y="671.31">which of your</text>
+<text class="f-sub" x="303" y="685.81">words matched</text>
+<text class="f-sub" x="303" y="700.31">nothing</text>
+</g>
+<text class="f-tag" text-anchor="end" x="288" y="659">no</text>
+<g class="f-node">
+<rect class="f-box f-box--good" x="10" y="725" width="268" height="54" rx="16"/>
+<text class="f-lab" x="21" y="748.04">Answer, from those passages,</text>
+<text class="f-lab" x="21" y="766.04">with citations</text>
+</g>
+<text class="f-note" x="12" y="802.31">No graph is walked. The name is historical; this is a re-rank on shared</text>
+<text class="f-note" x="12" y="816.81">names.</text>
+</svg>
+            <!-- FLOW:graph-rag:END -->
+            </div>
             <div class="mode__detail">
               <p class="mode__heading">How it works</p>
               <ol class="mode__steps">
@@ -427,12 +660,74 @@
             <span class="mode__name">Corrective</span>
             <p class="mode__gist">Grades the evidence first, and declines rather than answer on weak support.</p>
             <span class="mode__more" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              Details
+              <svg class="mode__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4.5h-5v5"/><path d="M14.5 4.5h5v5"/><path d="M9.5 19.5h-5v-5"/><path d="M14.5 19.5h5v-5"/></svg>
+              See how it works
             </span>
           </summary>
           <div class="mode__panel">
-            <div class="mode__flow" data-flow="corrective"></div>
+            <div class="mode__flow" data-flow="corrective">
+            <!-- FLOW:corrective:START -->
+<svg class="flow" viewBox="0 0 420 563" role="img" aria-labelledby="flow-corrective-t flow-corrective-d">
+<title id="flow-corrective-t">Corrective — grade first, retry differently, then decline</title>
+<desc id="flow-corrective-d">A Contextual Hybrid search runs and its result is graded: do the top three passages cover at least 35% of your words, and did anything score above zero. If so the answer is written. If not, the question is re-run as a RAG-Fusion search — a different route rather than the same one again — and graded a second time. If that also fails, the mode declines and names which of your words appear nowhere in the documents, so a typo is distinguishable from a topic the documents do not cover.</desc>
+<defs><marker id="fa-corrective" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.4" markerHeight="5.4" orient="auto-start-reverse"><path class="f-arrow" d="M0 0 10 5 0 10z"/></marker></defs>
+<path class="f-edge" d="M278 179H287" marker-end="url(#fa-corrective)"/>
+<path class="f-edge" d="M278 370H287" marker-end="url(#fa-corrective)"/>
+<path class="f-edge" d="M144 44V73" marker-end="url(#fa-corrective)"/>
+<path class="f-edge" d="M144 110V139" marker-end="url(#fa-corrective)"/>
+<path class="f-edge" d="M144 218V247" marker-end="url(#fa-corrective)"/>
+<path class="f-edge" d="M144 318V347" marker-end="url(#fa-corrective)"/>
+<path class="f-edge" d="M144 392V421" marker-end="url(#fa-corrective)"/>
+<g class="f-node">
+<rect class="f-box f-box--accent" x="10" y="8" width="268" height="36" rx="9"/>
+<text class="f-lab" x="21" y="31.04">Your question</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="10" y="74" width="268" height="36" rx="9"/>
+<text class="f-lab" x="21" y="97.04">Contextual Hybrid, top 5</text>
+</g>
+<g class="f-node">
+<polygon class="f-box" points="26,140 262,140 278,179 262,218 26,218 10,179"/>
+<text class="f-lab" x="32" y="167.04">Enough evidence?</text>
+<text class="f-sub" x="32" y="187.31">top 3 cover 35% of your words</text>
+<text class="f-sub" x="32" y="201.81">and the best score is above 0</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--good" x="292" y="145" width="118" height="68" rx="16"/>
+<text class="f-lane" x="303" y="166.48">Answer</text>
+<text class="f-sub" x="303" y="186.31">with</text>
+<text class="f-sub" x="303" y="200.81">citations</text>
+</g>
+<text class="f-tag" text-anchor="end" x="288" y="174">yes</text>
+<g class="f-node">
+<rect class="f-box" x="10" y="248" width="268" height="70" rx="9"/>
+<text class="f-lab" x="21" y="271.04">Re-run as RAG-Fusion</text>
+<text class="f-sub" x="21" y="291.31">four phrasings, merged by rank — a</text>
+<text class="f-sub" x="21" y="305.81">different route, not a retry</text>
+</g>
+<g class="f-node">
+<polygon class="f-box" points="26,348 262,348 278,370 262,392 26,392 10,370"/>
+<text class="f-lab" x="32" y="375.04">Enough now?</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--good" x="292" y="336" width="118" height="68" rx="16"/>
+<text class="f-lane" x="303" y="357.48">Answer</text>
+<text class="f-sub" x="303" y="377.31">with</text>
+<text class="f-sub" x="303" y="391.81">citations</text>
+</g>
+<text class="f-tag" text-anchor="end" x="288" y="365">yes</text>
+<g class="f-node">
+<rect class="f-box f-box--stop" x="10" y="422" width="268" height="88" rx="16"/>
+<text class="f-lab" x="21" y="445.04">Decline — and name which of your</text>
+<text class="f-lab" x="21" y="463.04">words matched nothing</text>
+<text class="f-sub" x="21" y="483.31">a typo and an uncovered topic look</text>
+<text class="f-sub" x="21" y="497.81">identical without it</text>
+</g>
+<text class="f-note" x="12" y="533.31">Every mode refuses on thin evidence. This is the one that tries a second</text>
+<text class="f-note" x="12" y="547.81">route first.</text>
+</svg>
+            <!-- FLOW:corrective:END -->
+            </div>
             <div class="mode__detail">
               <p class="mode__heading">How it works</p>
               <ol class="mode__steps">
@@ -452,12 +747,91 @@
             <span class="mode__name">Multi-Modal</span>
             <p class="mode__gist">Favours tables, spreadsheets and media when the question calls for them.</p>
             <span class="mode__more" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              Details
+              <svg class="mode__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4.5h-5v5"/><path d="M14.5 4.5h5v5"/><path d="M9.5 19.5h-5v-5"/><path d="M14.5 19.5h5v-5"/></svg>
+              See how it works
             </span>
           </summary>
           <div class="mode__panel">
-            <div class="mode__flow" data-flow="multi-modal"></div>
+            <div class="mode__flow" data-flow="multi-modal">
+            <!-- FLOW:multi-modal:START -->
+<svg class="flow" viewBox="0 0 420 894" role="img" aria-labelledby="flow-multi-modal-t flow-multi-modal-d">
+<title id="flow-multi-modal-t">Multi-Modal — the same scoring, weighted by content type</title>
+<desc id="flow-multi-modal-d">Your words are checked against three fixed vocabularies that name a kind of content: table words, image words and media words. A passage recorded as a kind you asked for is weighted 1.8 times; ordinary PDF or text is weighted 1.1; anything else is unweighted. Everything after that is the same term-overlap scoring the default mode uses. Nothing is excluded — the ordering changes, not the pool — so a question naming no content type behaves almost exactly like the default.</desc>
+<defs><marker id="fa-multi-modal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.4" markerHeight="5.4" orient="auto-start-reverse"><path class="f-arrow" d="M0 0 10 5 0 10z"/></marker></defs>
+<path class="f-edge" d="M278 740.5H287" marker-end="url(#fa-multi-modal)"/>
+<path class="f-edge" d="M144 78V107" marker-end="url(#fa-multi-modal)"/>
+<path class="f-edge" d="M144 311.5V340.5" marker-end="url(#fa-multi-modal)"/>
+<path class="f-edge" d="M144 424V453" marker-end="url(#fa-multi-modal)"/>
+<path class="f-edge" d="M144 524V553" marker-end="url(#fa-multi-modal)"/>
+<path class="f-edge" d="M144 590V619" marker-end="url(#fa-multi-modal)"/>
+<path class="f-edge" d="M144 679.5V708.5" marker-end="url(#fa-multi-modal)"/>
+<path class="f-edge" d="M144 771.5V800.5" marker-end="url(#fa-multi-modal)"/>
+<g class="f-node">
+<rect class="f-box f-box--accent" x="10" y="8" width="268" height="70" rx="9"/>
+<text class="f-lab" x="21" y="31.04">Your question</text>
+<text class="f-sub" x="21" y="51.31">a repeated word counts once here,</text>
+<text class="f-sub" x="21" y="65.81">unlike in the default mode</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="10" y="108" width="268" height="203.5" rx="9"/>
+<text class="f-head" x="21" y="127.14">WORDS THAT NAME A CONTENT TYPE</text>
+<text class="f-lane" x="21" y="147.48">table</text>
+<text class="f-sub" x="27" y="164.31">row · column · csv · data ·</text>
+<text class="f-sub" x="27" y="178.81">dataset · spreadsheet · total ·</text>
+<text class="f-sub" x="27" y="193.31">average · count</text>
+<text class="f-lane" x="21" y="214.98">image</text>
+<text class="f-sub" x="27" y="231.81">photo · picture · screenshot ·</text>
+<text class="f-sub" x="27" y="246.31">diagram · chart · figure</text>
+<text class="f-lane" x="21" y="267.98">media</text>
+<text class="f-sub" x="27" y="284.81">audio · voice · recording ·</text>
+<text class="f-sub" x="27" y="299.31">transcript · timestamp · video</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--formula" x="10" y="341.5" width="268" height="82.5" rx="9"/>
+<text class="f-head" x="21" y="360.64">WEIGHT PER PASSAGE</text>
+<text class="f-mono" x="21" y="380.59">1.8 ×  it is a kind you asked for</text>
+<text class="f-mono" x="21" y="396.09">1.1 ×  ordinary PDF or text</text>
+<text class="f-mono" x="21" y="411.59">1.0 ×  anything else</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="10" y="454" width="268" height="70" rx="9"/>
+<text class="f-lab" x="21" y="477.04">The default scoring, × weight</text>
+<text class="f-sub" x="21" y="497.31">nothing is excluded — the ordering</text>
+<text class="f-sub" x="21" y="511.81">changes, not the pool</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="10" y="554" width="268" height="36" rx="9"/>
+<text class="f-lab" x="21" y="577.04">Sort, keep the top 5</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--dash" x="10" y="620" width="268" height="59.5" rx="9"/>
+<text class="f-sub" x="21" y="639.31">If the document was embedded: fused</text>
+<text class="f-sub" x="21" y="653.81">with the cosine ranking by</text>
+<text class="f-sub" x="21" y="668.31">reciprocal rank</text>
+</g>
+<g class="f-node">
+<polygon class="f-box" points="26,709.5 262,709.5 278,740.5 262,771.5 26,771.5 10,740.5"/>
+<text class="f-lab" x="32" y="736.54">Do the top 3 passages cover</text>
+<text class="f-lab" x="32" y="754.54">35% of your words?</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--stop" x="292" y="692" width="118" height="97" rx="16"/>
+<text class="f-lane" x="303" y="713.48">Refuse</text>
+<text class="f-sub" x="303" y="733.31">and name</text>
+<text class="f-sub" x="303" y="747.81">which of your</text>
+<text class="f-sub" x="303" y="762.31">words matched</text>
+<text class="f-sub" x="303" y="776.81">nothing</text>
+</g>
+<text class="f-tag" text-anchor="end" x="288" y="735.5">no</text>
+<g class="f-node">
+<rect class="f-box f-box--good" x="10" y="801.5" width="268" height="54" rx="16"/>
+<text class="f-lab" x="21" y="824.54">Answer, from those passages,</text>
+<text class="f-lab" x="21" y="842.54">with citations</text>
+</g>
+<text class="f-note" x="12" y="878.81">Name no content type and this is the default mode with a 1.1× on prose.</text>
+</svg>
+            <!-- FLOW:multi-modal:END -->
+            </div>
             <div class="mode__detail">
               <p class="mode__heading">How it works</p>
               <ol class="mode__steps">
@@ -477,12 +851,98 @@
             <span class="mode__name">Agentic RAG</span>
             <p class="mode__gist">Runs the other modes together and combines their best results. Slowest.</p>
             <span class="mode__more" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              Details
+              <svg class="mode__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4.5h-5v5"/><path d="M14.5 4.5h5v5"/><path d="M9.5 19.5h-5v-5"/><path d="M14.5 19.5h5v-5"/></svg>
+              See how it works
             </span>
           </summary>
           <div class="mode__panel">
-            <div class="mode__flow" data-flow="agentic-rag"></div>
+            <div class="mode__flow" data-flow="agentic-rag">
+            <!-- FLOW:agentic-rag:START -->
+<svg class="flow" viewBox="0 0 420 883" role="img" aria-labelledby="flow-agentic-rag-t flow-agentic-rag-d">
+<title id="flow-agentic-rag-t">Agentic RAG — five tools, weighted by keyword</title>
+<desc id="flow-agentic-rag-d">Five retrieval tools are given fixed weights, adjusted by two keyword tests: words like compare, between or related raise GraphRAG, and words naming a content type raise Multi-Modal. No language model plans any of it. Every tool runs; each tool’s scores are divided by its own best score, multiplied by the tool’s weight and given a rank bonus, which is what makes tools on different scales comparable at all. Results are then spread across source documents. If the merged evidence is thin, the remaining phrasings are searched at 0.8 weight and the merge is redone. The evidence is graded strong, moderate or weak and reported with the answer, which carries up to seven citations.</desc>
+<defs><marker id="fa-agentic-rag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.4" markerHeight="5.4" orient="auto-start-reverse"><path class="f-arrow" d="M0 0 10 5 0 10z"/></marker></defs>
+<path class="f-edge" d="M278 627.5H287" marker-end="url(#fa-agentic-rag)"/>
+<path class="f-edge f-edge--dash" d="M410 627.5H415V417.25H283" marker-end="url(#fa-agentic-rag)"/>
+<path class="f-edge" d="M144 63.5V92.5" marker-end="url(#fa-agentic-rag)"/>
+<path class="f-edge" d="M36.8 315C36.8 337 144 337 144 353"/>
+<path class="f-edge" d="M90.4 315C90.4 337 144 337 144 353"/>
+<path class="f-edge" d="M144 315C144 337 144 337 144 353"/>
+<path class="f-edge" d="M197.6 315C197.6 337 144 337 144 353"/>
+<path class="f-edge" d="M251.2 315C251.2 337 144 337 144 353"/>
+<path class="f-edge" d="M144 351V358" marker-end="url(#fa-agentic-rag)"/>
+<path class="f-edge" d="M144 475.5V504.5" marker-end="url(#fa-agentic-rag)"/>
+<path class="f-edge" d="M144 575.5V604.5" marker-end="url(#fa-agentic-rag)"/>
+<path class="f-edge" d="M144 649.5V678.5" marker-end="url(#fa-agentic-rag)"/>
+<path class="f-edge" d="M144 764V793" marker-end="url(#fa-agentic-rag)"/>
+<g class="f-node">
+<rect class="f-box f-box--accent" x="10" y="8" width="268" height="55.5" rx="9"/>
+<text class="f-lab" x="21" y="31.04">Your question</text>
+<text class="f-sub" x="21" y="51.31">tested for two keyword signals</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="10" y="93.5" width="268" height="221.5" rx="9"/>
+<text class="f-head" x="21" y="112.64">FIVE TOOLS, FIXED WEIGHTS</text>
+<text class="f-lane" x="21" y="132.98">RAG-Fusion</text>
+<text class="f-val" text-anchor="end" x="267" y="132.98">1.25</text>
+<text class="f-lane" x="21" y="154.98">Corrective</text>
+<text class="f-val" text-anchor="end" x="267" y="154.98">1.15</text>
+<text class="f-lane" x="21" y="176.98">Contextual Hybrid</text>
+<text class="f-val" text-anchor="end" x="267" y="176.98">1.00</text>
+<text class="f-lane" x="21" y="198.98">GraphRAG</text>
+<text class="f-val" text-anchor="end" x="267" y="198.98">1.35 / 0.85</text>
+<text class="f-lane" x="21" y="220.98">Multi-Modal</text>
+<text class="f-val" text-anchor="end" x="267" y="220.98">1.35 / 0.75</text>
+<line class="f-rule" x1="21" y1="228.5" x2="267" y2="228.5"/>
+<text class="f-sub" x="21" y="245.81">GraphRAG rises on compare,</text>
+<text class="f-sub" x="21" y="260.31">between, related, across, impact,</text>
+<text class="f-sub" x="21" y="274.81">depends; Multi-Modal on a</text>
+<text class="f-sub" x="21" y="289.31">content-type word. No language</text>
+<text class="f-sub" x="21" y="303.81">model plans any of this.</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--formula" x="10" y="359" width="268" height="116.5" rx="9"/>
+<text class="f-head" x="21" y="378.14">MERGE</text>
+<text class="f-mono" x="21" y="398.09">each tool’s scores ÷ its own best</text>
+<text class="f-mono" x="21" y="413.59">× the tool’s weight</text>
+<text class="f-mono" x="21" y="429.09">+ 1 / (rank + 4)</text>
+<text class="f-sub" x="21" y="448.81">tools score on different scales;</text>
+<text class="f-sub" x="21" y="463.31">this is what makes them comparable</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="10" y="505.5" width="268" height="70" rx="9"/>
+<text class="f-lab" x="21" y="528.54">Spread across documents</text>
+<text class="f-sub" x="21" y="548.81">−0.15 per passage already taken</text>
+<text class="f-sub" x="21" y="563.31">from the same source</text>
+</g>
+<g class="f-node">
+<polygon class="f-box" points="26,605.5 262,605.5 278,627.5 262,649.5 26,649.5 10,627.5"/>
+<text class="f-lab" x="32" y="632.54">Enough evidence?</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="292" y="586.25" width="118" height="82.5" rx="16"/>
+<text class="f-lane" x="303" y="607.73">Repair pass</text>
+<text class="f-sub" x="303" y="627.56">the other</text>
+<text class="f-sub" x="303" y="642.06">phrasings, at</text>
+<text class="f-sub" x="303" y="656.56">0.8 weight</text>
+</g>
+<text class="f-tag" text-anchor="end" x="288" y="622.5">no</text>
+<g class="f-node">
+<rect class="f-box" x="10" y="679.5" width="268" height="84.5" rx="9"/>
+<text class="f-lab" x="21" y="702.54">Grade the evidence</text>
+<text class="f-sub" x="21" y="722.81">strong: 65% coverage · moderate:</text>
+<text class="f-sub" x="21" y="737.31">35% · otherwise weak — said in the</text>
+<text class="f-sub" x="21" y="751.81">answer</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--good" x="10" y="794" width="268" height="36" rx="16"/>
+<text class="f-lab" x="21" y="817.04">Answer, with up to 7 citations</text>
+</g>
+<text class="f-note" x="12" y="853.31">Nothing here is an agent. Five tools, two keyword tests, one weighted</text>
+<text class="f-note" x="12" y="867.81">merge.</text>
+</svg>
+            <!-- FLOW:agentic-rag:END -->
+            </div>
             <div class="mode__detail">
               <p class="mode__heading">How it works</p>
               <ol class="mode__steps">
@@ -497,6 +957,41 @@
           </div>
         </details>
       </div>
+
+      <!-- The panel a mode opens into.
+           ONE dialog for all six, not six dialogs: the panel element itself is
+           moved in here on open and moved back to its <details> on close, so
+           there is a single copy of every flowchart and every step list in the
+           document. Cloning instead would double six SVGs, and duplicate what a
+           screen reader and find-in-page walk through.
+           Empty in the markup on purpose — with JavaScript off this element is
+           never opened and each <details> expands in place, which is why the
+           inline panel styling still exists. See initModes in lens.js. -->
+      <dialog class="mmodal" id="mode-dialog" aria-labelledby="mode-dialog-name">
+        <div class="mmodal__frame">
+          <header class="mmodal__head">
+            <div class="mmodal__id">
+              <span class="mode__name" id="mode-dialog-name"></span>
+              <p class="mmodal__gist"></p>
+            </div>
+            <button class="mmodal__close" type="button" aria-label="Close">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+          </header>
+          <div class="mmodal__body"></div>
+          <footer class="mmodal__foot">
+            <button class="mmodal__step" type="button" data-dir="-1">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+              <span></span>
+            </button>
+            <p class="mmodal__count" aria-live="off"></p>
+            <button class="mmodal__step mmodal__step--next" type="button" data-dir="1">
+              <span></span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+          </footer>
+        </div>
+      </dialog>
     </section>
 
     <!-- ---------------------------------------------------------------

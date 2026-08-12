@@ -29,6 +29,12 @@ html {
   scroll-behavior: smooth;
   /* The sticky header would otherwise cover the target of every in-page link. */
   scroll-padding-top: 5.5rem;
+  /* Reserved unconditionally, not only while a modal is open. The mode dialog
+     locks scrolling with `overflow: hidden` on this element, and without a
+     reserved gutter the scrollbar's disappearance widens the viewport and shifts
+     the whole page sideways behind the modal — a jump that reads as the layout
+     breaking at the exact moment something is being opened on top of it. */
+  scrollbar-gutter: stable;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -245,6 +251,12 @@ textarea {
   --focus-ring: #556ae4;
   --focus-ring-on-code: #7d95ff;
 
+  /* the pointer: two-tone, constant across configurations. The ink is a stated
+     choice; the halo is the dark end of the neutral scale. On every surface at
+     least one of the two clears 4.5:1 — see CURSOR_INK in the generator. */
+  --cursor-ink: #45dfca;
+  --cursor-halo: #1f2021;
+
   /* status hues are constant across configurations — see STATUS in the generator */
   --warning: #8d5a08;
   --warning-solid: #a46800;
@@ -388,6 +400,12 @@ textarea {
     --focus-ring: #677ffb;
     --focus-ring-on-code: #7d95ff;
 
+    /* the pointer: two-tone, constant across configurations. The ink is a stated
+       choice; the halo is the dark end of the neutral scale. On every surface at
+       least one of the two clears 4.5:1 — see CURSOR_INK in the generator. */
+    --cursor-ink: #45dfca;
+    --cursor-halo: #111111;
+
     /* status hues are constant across configurations — see STATUS in the generator */
     --warning: #e4ac68;
     --warning-solid: #c17a00;
@@ -530,6 +548,12 @@ textarea {
   /* focus: must clear 3:1 against the page and against the dark code island */
   --focus-ring: #677ffb;
   --focus-ring-on-code: #7d95ff;
+
+  /* the pointer: two-tone, constant across configurations. The ink is a stated
+     choice; the halo is the dark end of the neutral scale. On every surface at
+     least one of the two clears 4.5:1 — see CURSOR_INK in the generator. */
+  --cursor-ink: #45dfca;
+  --cursor-halo: #111111;
 
   /* status hues are constant across configurations — see STATUS in the generator */
   --warning: #e4ac68;
@@ -1403,20 +1427,25 @@ code {
 
 /* --- modes ----------------------------------------------------------------
    Each mode is a <details>, so opening one is native: click, tap, Enter, Space,
-   and it still works with JavaScript off. Hover is added in lens.js on top of
-   that, as a shortcut — never as the only way in, because a hover-only panel
-   does not exist on a phone and cannot be reached from a keyboard.
+   and it works with JavaScript off. With JavaScript on, initModes MOVES the open
+   panel into the shared <dialog> (.mmodal) and the card stays a card — so both
+   the inline layout below and the modal layout further down are live code, and
+   which one you get is exactly whether scripting ran.
 
-   Explicit column counts rather than auto-fit: an open panel spans the full row
-   with `grid-column: 1 / -1`, and a spanning item's min-content contribution can
-   collapse an auto-fit track count to one. */
+   Explicit column counts rather than auto-fit: the no-JS open panel spans the
+   full row with `grid-column: 1 / -1`, and a spanning item's min-content
+   contribution can collapse an auto-fit track count to one. */
 
 .modes {
   display: grid;
   gap: 0.85rem;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 1.25rem 0 1rem;
-  align-items: start;
+  /* No `align-items: start`. Grid's default stretch is what makes every card in a
+     row the same height regardless of how many lines its description runs to; with
+     start, each card shrank to its own text and the six Details rows landed at four
+     different heights. An open panel is the only item in its row (it spans
+     1 / -1), so stretching costs it nothing. */
 }
 
 @media (max-width: 1040px) {
@@ -1432,27 +1461,82 @@ code {
 }
 
 .mode {
+  position: relative;
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: top 0.22s cubic-bezier(0.2, 0.7, 0.2, 1), border-color 0.22s ease,
+    box-shadow 0.22s ease;
+  top: 0;
 }
 
-.mode:hover {
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
-  box-shadow: var(--shadow-sm);
+/* THE HOVER AFFORDANCE.
+   A card that opens a dialog has to look like a card that opens a dialog, and a
+   1px border warming up does not say that. Four things move together, and each is
+   saying the same sentence in a different medium:
+
+     * the lock-on brackets snap to two corners — already here, from the .lockon
+       motif this card has always carried, and NOT re-invented below;
+     * the card lifts and takes a real shadow — it is coming off the page;
+     * the "See how it works" pill fills in, so the control reads as armed;
+     * the four corner marks in its glyph push OUTWARD — the one gesture that
+       means "expand into an overlay" rather than "expand in place". That is why
+       the old chevron had to go: it promised the panel would unfold below, which
+       is exactly what no longer happens.
+
+   Keyboard gets all of it too, through :has(> summary:focus-visible) — the signal
+   is about the control being ready, not about a pointer being present. And
+   .lockon already fires on :focus-within, so the brackets come along for free.
+
+   TWO THINGS HERE ARE NOT PREFERENCES, AND BOTH LOOK WRONG UNTIL YOU KNOW WHY.
+
+   THE LIFT IS `top`, NOT A TRANSFORM. Every transform-family property on this
+   element is already taken: the catalogue entrance is `animation: nx-deal linear
+   both` on a `view()` timeline, which animates `translate`, `scale` and `opacity`
+   and — because of `both` — HOLDS its final `translate: 0 0` forever after. A
+   running or filling animation outranks every normal author declaration, so a
+   hover lift written as `transform`, `translate` or `scale` is discarded in
+   silence: measured as `translate: 0px` with the pill, the border, the shadow, the
+   brackets and the glyph all visibly working, which reads as the lift never having
+   been written rather than as a cascade conflict. (`.nx-js
+   .reveal--catalogue.is-in .mode { transform: none }`, the no-scroll-timeline
+   fallback, takes `transform` for the same reason.) `top` on an
+   already-relative element is untouched by any of it, costs one element's layout
+   on hover — not in a scroll loop, which is what the performance rule at the top
+   of lens.js is about — and moves the lock-on brackets with the card, since they
+   are its own pseudo-elements.
+
+   THERE IS DELIBERATELY NO `::after` FRAME. An earlier version added one, which
+   was a bug: `.mode` also carries `.lockon`, an element has exactly one ::after,
+   and `.lockon::after` IS the bottom-right lock-on bracket. The two rules
+   interleaved per-property — the frame never drew and the bracket lost half its
+   border. The brackets already are the frame signal. */
+.mode:hover,
+.mode:has(> summary:focus-visible) {
+  top: -3px;
+  border-color: var(--primary-line);
+  box-shadow: var(--shadow-md);
 }
 
-/* Open, it becomes a full-width panel in place. No overlay, no focus trap, and
-   the reading order stays where the reader's attention already is. */
-.modes details[open] {
+/* No-JS only. With scripting on, the panel is moved into the dialog and there is
+   nothing left in the card to span the row for. */
+html:not(.nx-js) .modes details[open] {
   grid-column: 1 / -1;
   border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
   box-shadow: var(--shadow-md);
 }
 
+/* The whole card face is the summary, so it has to fill the card for the Details
+   row to be able to sit at the bottom of it. `display: flex` also removes the
+   disclosure triangle on its own, which is why list-style and the -webkit marker
+   rule below are belt-and-braces rather than the mechanism. */
 .mode > summary {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
   overflow: hidden;
   padding: 1rem 1.1rem;
   border-radius: var(--radius);
@@ -1470,6 +1554,9 @@ code {
 }
 
 .mode__name {
+  /* A flex item stretches across the column by default, which would turn this pill
+     into a full-width bar. */
+  align-self: flex-start;
   display: inline-block;
   font-family: var(--font-mono);
   font-size: 0.845rem;
@@ -1492,21 +1579,59 @@ code {
 .mode__more {
   display: inline-flex;
   align-items: center;
+  align-self: flex-start;
   gap: 0.28rem;
-  margin-top: 0.7rem;
+  margin-top: auto;
+  padding-top: 0.7rem;
   font-size: 0.82rem;
   font-weight: 620;
   color: var(--primary-text);
 }
 
-.mode__more svg {
-  width: 0.95rem;
-  height: 0.95rem;
-  transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
+.mode__more {
+  border-radius: 999px;
+  padding-inline: 0.5rem;
+  padding-block: 0.2rem;
+  margin-left: -0.5rem;
+  background: transparent;
+  transition: background-color 0.22s ease, color 0.22s ease;
 }
 
-.mode[open] .mode__more svg {
-  transform: rotate(180deg);
+.mode:hover .mode__more,
+.mode:has(> summary:focus-visible) .mode__more {
+  background: var(--primary-subtle);
+}
+
+.mode__ico {
+  width: 0.95rem;
+  height: 0.95rem;
+  overflow: visible;
+}
+
+/* Each corner leaves along its own diagonal, so the glyph opens rather than
+   scaling — a scale would just make the same mark bigger. */
+.mode__ico path {
+  transition: transform 0.24s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.mode:hover .mode__ico path:nth-child(1),
+.mode:has(> summary:focus-visible) .mode__ico path:nth-child(1) {
+  transform: translate(-1.6px, -1.6px);
+}
+
+.mode:hover .mode__ico path:nth-child(2),
+.mode:has(> summary:focus-visible) .mode__ico path:nth-child(2) {
+  transform: translate(1.6px, -1.6px);
+}
+
+.mode:hover .mode__ico path:nth-child(3),
+.mode:has(> summary:focus-visible) .mode__ico path:nth-child(3) {
+  transform: translate(-1.6px, 1.6px);
+}
+
+.mode:hover .mode__ico path:nth-child(4),
+.mode:has(> summary:focus-visible) .mode__ico path:nth-child(4) {
+  transform: translate(1.6px, 1.6px);
 }
 
 .mode__panel {
@@ -1523,21 +1648,24 @@ code {
   max-width: var(--measure);
 }
 
-/* Two columns only once there is a flowchart to put in the first one. */
+/* Two columns only once there is a flowchart to put in the first one. The
+   diagram track is capped at the diagram's own 420 user units: it is authored to
+   render at 1:1 on the narrowest screen the site supports, so letting it grow to
+   700px would scale 14.5px type up to 24px beside 15px prose. */
 @media (min-width: 900px) {
   .mode__panel:has(.mode__flow:not(:empty)) {
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
   }
 }
 
-/* Empty until the per-mode flowcharts are authored against the retrieval code —
-   an empty bordered box would read as a broken image. */
+/* An empty flow box would read as a broken image. */
 .mode__flow:empty {
   display: none;
 }
 
 .mode__flow svg {
   width: 100%;
+  max-width: 420px;
   height: auto;
 }
 
@@ -1621,6 +1749,387 @@ code {
   border-radius: 999px;
   padding: 0.22rem 0.65rem;
   margin: 0;
+}
+
+/* --- the mode flowcharts --------------------------------------------------
+   Six generated SVGs — scripts/generate-flows.mjs owns every coordinate in them;
+   this file owns every colour and type size. That split is deliberate: the
+   generator has no idea what a theme is, and re-running it must never be able to
+   change what a diagram looks like, only where its boxes are.
+
+   Every value below is a token, and the ones carrying small type are steps the
+   palette generator verifies at 4.5:1 against exactly the surfaces used here
+   (bg-subtle, and each hue's step 3). The box fills are not free inventions for
+   the same reason — `f-box--accent` reuses the one tinted surface the contrast
+   audit already covers, and the formula box is distinguished by its border and
+   its mono head rather than by a new tint nothing has measured. */
+
+.flow {
+  display: block;
+  overflow: visible;
+}
+
+.flow .f-lab {
+  fill: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  font-weight: 650;
+}
+
+.flow .f-lane {
+  fill: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 640;
+}
+
+.flow .f-sub {
+  fill: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11.6px;
+}
+
+/* The formulas are the substance of these diagrams, not a caption on them. */
+.flow .f-mono {
+  fill: var(--text);
+  font-family: var(--font-mono);
+  font-size: 11.6px;
+}
+
+.flow .f-val {
+  fill: var(--primary-text);
+  font-family: var(--font-mono);
+  font-size: 11.6px;
+  font-weight: 620;
+}
+
+.flow .f-head {
+  fill: var(--primary-text);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+}
+
+.flow .f-note {
+  fill: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 11.6px;
+  font-style: italic;
+}
+
+/* The yes/no on a branch. It sits on the panel surface with no box, so it is
+   knocked out in the surface's own colour rather than given a rect to keep in
+   sync — the same trick the architecture diagram's edge captions use. */
+.flow .f-tag {
+  fill: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: var(--knockout);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.flow .f-box {
+  fill: var(--bg-subtle);
+  stroke: var(--graphic-line);
+  stroke-width: 1.2;
+}
+
+.flow .f-box--accent {
+  fill: color-mix(in srgb, var(--primary) 7%, var(--surface));
+  stroke: var(--primary-line);
+  stroke-width: 1.4;
+}
+
+.flow .f-box--formula {
+  stroke: var(--primary-line);
+  stroke-width: 1.4;
+}
+
+.flow .f-box--dash {
+  fill: none;
+  stroke: var(--border-meaningful);
+  stroke-width: 1.2;
+  stroke-dasharray: 5 4;
+}
+
+/* Outcome boxes. The tone is a second channel, never the only one — both boxes
+   say what they are in words ("Answer", "Refuse", "Decline"), because a reader
+   who cannot separate the two hues must still be able to read the chart. */
+.flow .f-box--good {
+  fill: var(--accent-subtle);
+  stroke: var(--accent-line);
+  stroke-width: 1.4;
+}
+
+.flow .f-box--stop {
+  fill: var(--warning-subtle);
+  stroke: var(--warning);
+  stroke-width: 1.4;
+}
+
+.flow .f-edge {
+  stroke: var(--graphic-line);
+  stroke-width: 1.4;
+  fill: none;
+}
+
+.flow .f-edge--dash {
+  stroke-dasharray: 5 4;
+}
+
+.flow .f-arrow {
+  fill: var(--graphic-line);
+}
+
+.flow .f-rule {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+/* --- the mode dialog ------------------------------------------------------
+   One <dialog> for all six modes. The panel element is MOVED in and out rather
+   than cloned, so there is exactly one copy of each flowchart in the document —
+   see the comment on the element in index.html.
+
+   `showModal()` is doing real work here that would otherwise be hand-written and
+   wrong: the focus trap, Escape, inertness of everything behind it, and the top
+   layer (so no z-index in this file can ever end up above it). What it does NOT
+   do is stop the page scrolling behind the backdrop, which is why lens.js locks
+   `overflow` on <html> and why the scrollbar gutter is reserved up there. */
+
+.mmodal {
+  width: min(1060px, 94vw);
+  max-width: min(1060px, 94vw);
+  max-height: min(90vh, 900px);
+  margin: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  overflow: visible;
+}
+
+.mmodal::backdrop {
+  background: rgb(6 8 14 / 58%);
+  backdrop-filter: blur(3px);
+}
+
+.mmodal__frame {
+  display: flex;
+  flex-direction: column;
+  max-height: min(90vh, 900px);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: calc(var(--radius) * 1.5);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.mmodal__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.05rem 1.15rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.mmodal__id {
+  min-width: 0;
+}
+
+/* The pill is the same .mode__name as on the card, so the thing you clicked and
+   the thing that opened are visibly the same object. */
+.mmodal__head .mode__name {
+  margin-bottom: 0.35rem;
+}
+
+.mmodal__gist {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.mmodal__close {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  margin-left: auto;
+  padding: 0;
+  background: var(--component);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.mmodal__close:hover {
+  background: var(--component-hover);
+  border-color: var(--border-meaningful);
+}
+
+.mmodal__close svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.mmodal__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* The panel arrives from a card, where it had a rule above it separating it from
+   the summary. In here the header is that separation. */
+.mmodal__body .mode__panel {
+  border-top: 0;
+  padding: 1.15rem;
+}
+
+.mmodal__foot {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1.15rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-subtle);
+}
+
+/* Stepping between modes without closing is the whole point of a catalogue: the
+   page's claim is that you can re-ask under another mode and compare, and making
+   the reader close, find and reopen is the friction that stops them doing it. */
+.mmodal__step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.34rem 0.7rem;
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 620;
+  color: var(--primary-text);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.mmodal__step:hover {
+  background: var(--primary-subtle);
+  border-color: var(--primary-line);
+}
+
+.mmodal__step--next {
+  margin-left: auto;
+}
+
+.mmodal__step svg {
+  flex: 0 0 auto;
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.mmodal__step span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mmodal__count {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 620px) {
+  .mmodal {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: 100vh;
+  }
+
+  .mmodal__frame {
+    max-height: 100vh;
+    border-radius: 0;
+    border: 0;
+  }
+
+  /* Two pills and a counter do not fit 320px, and the counter is the one of the
+     three that nobody needs. */
+  .mmodal__count {
+    display: none;
+  }
+
+  .mmodal__step span {
+    max-width: 8.5rem;
+  }
+}
+
+/* showModal() leaves the document scrollable behind the backdrop. */
+html.mmodal-open,
+html.mmodal-open body {
+  overflow: hidden;
+}
+
+/* The entrance exists to say where the panel came from: it rises the same few
+   pixels the card lifted on hover, so the gesture completes rather than restarts.
+   Both halves are animated — a backdrop that appears instantly under a frame that
+   eases in reads as two unrelated events. */
+@keyframes mmodal-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+}
+
+@keyframes mmodal-veil {
+  from {
+    opacity: 0;
+  }
+}
+
+.mmodal[open] .mmodal__frame {
+  animation: mmodal-in 0.24s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.mmodal[open]::backdrop {
+  animation: mmodal-veil 0.2s ease both;
+}
+
+/* Reduced motion. The affordance keeps every non-moving channel — the border, the
+   shadow, the filled pill, the lock-on brackets — and loses only the travel. The global block up
+   top zeroes durations, which stops things ANIMATING but not from being displaced
+   the instant a pointer arrives; a 3px jump on hover is exactly the kind of
+   unrequested movement this preference is asking us not to make. ::backdrop is
+   named explicitly because `*` does not match it. */
+@media (prefers-reduced-motion: reduce) {
+  .mode:hover,
+  .mode:has(> summary:focus-visible) {
+    top: 0;
+  }
+
+  /* :nth-child() has to be repeated here. Without it this selector is one
+     pseudo-class lighter than the rules it is overriding, so the corners kept
+     travelling under a preference that asks them not to. */
+  .mode:hover .mode__ico path:nth-child(n),
+  .mode:has(> summary:focus-visible) .mode__ico path:nth-child(n) {
+    transform: none;
+  }
+
+  .mmodal[open] .mmodal__frame,
+  .mmodal[open]::backdrop {
+    animation-duration: 0.01ms;
+  }
 }
 
 /* --- callouts ------------------------------------------------------------- */
@@ -2125,11 +2634,35 @@ pre code {
 
    `cursor: none` is applied by a class the script adds only AFTER the ring exists
    and has been positioned, and it is removed again if the reduced-motion
-   preference changes at runtime. The page is never left with no pointer at all. */
+   preference changes at runtime. The page is never left with no pointer at all.
+
+   THE TOP LAYER IS THE THIRD WAY THAT PROMISE CAN BE BROKEN, and it was. A modal
+   <dialog> paints above every z-index in this file, so over the mode dialog the
+   ring was drawn underneath the frame while the rule below went on hiding the
+   system pointer — zero cursor pixels, measured. The lens therefore stands down
+   while a modal is open (lensStandDown/lensResume in lens.js) and this rule stops
+   applying; the ring is hidden here as well, because at z-index 999 behind a
+   58%-opaque backdrop it stayed faintly visible under the veil.
+
+   The rule generalises: ANY future top-layer surface — another dialog, a popover —
+   has to do the same thing. There is no z-index that wins. */
 
 .has-lens-cursor,
 .has-lens-cursor * {
   cursor: none !important;
+}
+
+/* `visibility`, not `opacity` and not `display`.
+   Not opacity, because initCursor sets `wrap.style.opacity = '1'` inline when the
+   pointer is first seen, and an inline declaration beats a class rule — this was
+   written as `opacity: 0` first and measured no change at all, the ring still
+   glowing under the backdrop. Winning that with `!important` would leave two
+   places deciding one property. Not display, because the frame loop keeps writing
+   this element's transform and a reflow per frame is the one thing that loop is
+   built to avoid. `visibility: hidden` is contested by nothing, costs no layout,
+   and hides the descendants with it. */
+html.mmodal-open .nx-cursor {
+  visibility: hidden;
 }
 
 .nx-cursor {
@@ -2148,18 +2681,42 @@ pre code {
   will-change: transform;
 }
 
+/* THE POINTER IS PAINTED AT FULL OPACITY, IN ITS OWN COLOUR, WITH A HALO ON BOTH
+   SIDES OF EVERY LINE. All three are load-bearing, and all three replaced something
+   that measured badly.
+
+   It used to be the brand colour at 72% alpha on a 1.5px border with a 55% halo. On
+   screen that came to 25 of 1,183 cursor pixels clearing 3:1 on a light card, and
+   0 of 117 over the code island in the dark theme — a pointer that was technically
+   drawn and practically invisible. Alpha is gone: a translucent pointer takes its
+   contrast from whatever it happens to be over, and that is the one thing about a
+   pointer that cannot be allowed to vary.
+
+   `--cursor-ink` / `--cursor-halo` are verified in the generator, and the obligation
+   is stated on the PAIR: for every surface the pointer can cross — page steps,
+   section washes and the dark code island — at least one of the two tones clears
+   4.5:1, and the two clear 3:1 against each other so the shape reads as a shape. The
+   ink is a light mint, so on a light page it is the near-black halo that carries the
+   shape and the mint that supplies the colour; on a dark surface it is the other way
+   round. See CURSOR_INK in scripts/generate-palette.mjs. Do not put the brand token
+   back here: it changes with the palette configuration, and it cannot clear the code
+   island. */
+
 /* The precise point. No lerp, no transition on position — this is the thing that
    makes hiding the system pointer honest. */
 .nx-cursor__dot::after {
   content: "";
   position: absolute;
-  top: -3px;
-  left: -3px;
-  width: 6px;
-  height: 6px;
+  top: -3.5px;
+  left: -3.5px;
+  width: 7px;
+  height: 7px;
   border-radius: 999px;
-  background: var(--primary);
-  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--bg) 70%, transparent);
+  background: var(--cursor-ink);
+  /* Halo outside, so the dot survives landing on a surface its own colour. Kept to
+     1.5px: at 2px the dark rim was over half the dot's visual weight and the mint
+     stopped reading as the pointer's colour. */
+  box-shadow: 0 0 0 1.5px var(--cursor-halo);
   transition: opacity 0.2s ease, scale 0.2s ease;
 }
 
@@ -2170,12 +2727,22 @@ pre code {
   left: calc(var(--ring-w, 38px) / -2);
   width: var(--ring-w, 38px);
   height: var(--ring-h, 38px);
-  border: 1.5px solid color-mix(in srgb, var(--primary) 72%, transparent);
+  border: 3px solid var(--cursor-ink);
   border-radius: var(--ring-r, 999px);
-  background: color-mix(in srgb, var(--primary) 5%, transparent);
+  background: color-mix(in srgb, var(--cursor-ink) 7%, transparent);
+  /* Halo OUTSIDE and INSIDE the ink line — both, because outer-only leaves the ring's
+     inner edge dissolving into whatever it is over.
+     THE WIDTHS ARE A BALANCE, not padding. The ink is a light mint and the halo is
+     near-black, so on a light page the halo has ~16:1 to work with and the ink has
+     1.6:1 — meaning the halo decides what the reader SEES. At 1.5px each that was 3px
+     of near-black against 2px of mint, and the pointer read as a black ring with a
+     green tinge: visible, but not the colour it was asked to be. 3px of ink between
+     1px hairlines keeps the same defined edges and lets the mint be the band you
+     actually see. */
   box-shadow:
-    0 0 0 1.5px color-mix(in srgb, var(--bg) 55%, transparent),
-    inset 0 0 14px color-mix(in srgb, var(--primary) 9%, transparent);
+    0 0 0 1px var(--cursor-halo),
+    inset 0 0 0 1px var(--cursor-halo),
+    inset 0 0 14px color-mix(in srgb, var(--cursor-ink) 10%, transparent);
   transition:
     width 0.26s cubic-bezier(0.2, 0.7, 0.2, 1),
     height 0.26s cubic-bezier(0.2, 0.7, 0.2, 1),
@@ -2188,7 +2755,8 @@ pre code {
 /* Crosshair ticks — the lens "measuring", shown while scanning the document. */
 .nx-cursor__ring i {
   position: absolute;
-  background: var(--primary);
+  background: var(--cursor-ink);
+  box-shadow: 0 0 0 0.75px var(--cursor-halo);
   opacity: 0;
   transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
@@ -2201,10 +2769,13 @@ pre code {
 /* Snapped to something clickable: the ring becomes that element's box, so the
    pointer reads as "this is the thing you are about to press". The script writes
    the three geometry variables; the transitions above do the morph. */
+/* The three states below vary GEOMETRY and fill, never the ink's opacity. Fading a
+   pointer to signal a state trades the one thing it must always do for something it
+   can say another way. */
 .cur-snap .nx-cursor__ring::after {
-  border-width: 2px;
-  border-color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  border-width: 3.5px;
+  border-color: var(--cursor-ink);
+  background: color-mix(in srgb, var(--cursor-ink) 12%, transparent);
 }
 
 .cur-snap .nx-cursor__dot::after {
@@ -2214,9 +2785,11 @@ pre code {
 
 /* Over selectable text: an I-beam, because that is the affordance the system
    cursor was providing and text selection still works. */
+/* The I-beam is 3px wide, so it is the state that can least afford faded ink — and
+   at 55% it was the faintest of the four. Filled solid now. */
 .cur-text .nx-cursor__ring::after {
-  border-color: color-mix(in srgb, var(--primary) 55%, transparent);
-  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  border-color: var(--cursor-ink);
+  background: var(--cursor-ink);
 }
 
 .cur-text .nx-cursor__dot::after {
@@ -2236,7 +2809,7 @@ pre code {
 /* Pressing: the lens contracts onto the point, the way a shutter does. */
 .cur-press .nx-cursor__ring::after {
   scale: 0.82;
-  background: color-mix(in srgb, var(--primary) 16%, transparent);
+  background: color-mix(in srgb, var(--cursor-ink) 22%, transparent);
 }
 
 .cur-press .nx-cursor__dot::after {

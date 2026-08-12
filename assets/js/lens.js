@@ -20,7 +20,10 @@
         teleporting it.
      5. The data-flow rail — the reader's scroll position advances the pipeline.
      6. Hero counters, and parking the orbs when the hero is off screen.
-     7. The mode disclosures — hover-to-open layered over native <details>.
+     7. The mode disclosures — six native <details> whose panels are moved into
+        one shared modal <dialog> on open, paged through with prev/next, and
+        moved back on close. Opening is still the element's own click behaviour;
+        with scripting off the panels expand in place instead.
      8. Small echoes — a scan-flash on copy.
 
    The rest of the motif is declarative. Section treatments are scrubbed by
@@ -62,6 +65,48 @@
      with a halo of the page background, never a blend mode, and (b) `cursor:
      none` is only applied once the ring is in the DOM and positioned, and is
      withdrawn if the motion preference changes. */
+
+  /* THE LENS STANDS DOWN FOR A MODAL, AND HANDS THE SYSTEM POINTER BACK.
+   *
+   * A modal <dialog> is in the browser's TOP LAYER, which paints above every
+   * z-index in the document — there is no number that beats it. The ring lives in
+   * <body> at z-index 999, so with the mode dialog open it was painted underneath
+   * the frame while `.has-lens-cursor *` went on forcing `cursor: none` inside it.
+   * Measured: ZERO cursor pixels over the frame. The reader had no pointer at all
+   * over the one thing they had just opened — precisely the failure the note above
+   * `.has-lens-cursor` in styles.css exists to prevent, reached by a route that
+   * note did not anticipate.
+   *
+   * Re-parenting the ring INTO the dialog was tried first and is not the answer.
+   * It does join the top layer that way, but the ring is `position: fixed` and
+   * inside a top-layer element those coordinates stop resolving against the
+   * viewport: measured, the ring drew 59px to the left of the actual pointer. A
+   * pointer in the wrong place is worse than no pointer, because the reader trusts
+   * it. Correcting the offset by hand would mean tracking the host's own box every
+   * frame to compensate for a browser behaviour this file cannot pin down.
+   *
+   * So the lens stands down instead: the class is removed, `cursor: none` lifts,
+   * and the real system pointer comes back for as long as the dialog is open. It
+   * costs the motif on one surface and buys a pointer that is certainly there and
+   * certainly in the right place — and the modal's buttons get their own
+   * `cursor: pointer` back, which the lens had been suppressing. The ring itself is
+   * hidden by `html.mmodal-open .nx-cursor` in CSS, because at z-index 999 behind a
+   * 58%-opaque backdrop it was still faintly visible, glowing under the veil.
+   *
+   * `wasLens` matters: with a coarse pointer or reduced motion the class was never
+   * added, and restoring it on close would switch the lens on for someone the
+   * feature deliberately excludes. */
+  var wasLens = false;
+
+  function lensStandDown() {
+    wasLens = document.documentElement.classList.contains('has-lens-cursor');
+    if (wasLens) document.documentElement.classList.remove('has-lens-cursor');
+  }
+
+  function lensResume() {
+    if (wasLens) document.documentElement.classList.add('has-lens-cursor');
+    wasLens = false;
+  }
 
   function initCursor() {
     if (!FINE.matches || !motionOK()) return;
@@ -842,22 +887,36 @@
   }
 
   /* --- 7. the mode disclosures -----------------------------------------------
-     The six retrieval modes are <details> elements, so click, tap, Enter, Space
-     and Escape already work and they open with JavaScript disabled. This adds
-     hover as a shortcut on top — the thing actually asked for — with the two
-     details that make hover-to-open bearable rather than twitchy:
+     Six retrieval modes; each one's detail panel opens in a modal dialog.
 
-       * an intent delay in, so crossing a card on the way somewhere else does
-         not open it;
-       * a forgiveness delay out, so the pointer may cross the gap between the
-         summary and the panel without the panel vanishing underneath it.
+     WHY THE MARKUP IS STILL <details>
 
-     A panel opened by clicking is PINNED: it does not close when the pointer
-     leaves, because a click is a decision and a decision should not be undone by
-     a mouse movement. Hover only ever manages panels hover opened. */
+     Because it has to work with scripting off, and because a mode's panel is the
+     only place the site explains what the mode actually does. A <button> that
+     opens a dialog is the correct control — but with no JavaScript it is a control
+     that does nothing at all, which is strictly worse than a disclosure that
+     expands in place. So the markup stays a native disclosure and this function
+     upgrades it. Both paths are live: the inline panel CSS is what a no-JS reader
+     gets, and `html.nx-js` is what gates it off.
 
-  var MODE_OPEN_DELAY = 130;
-  var MODE_CLOSE_DELAY = 300;
+     WHY THE PANEL IS MOVED AND NOT CLONED
+
+     One dialog serves all six. On open, that mode's `.mode__panel` element is
+     moved into the dialog body; on close it goes back to its <details>. Cloning
+     would put a second copy of six flowcharts and six step lists in the document
+     for find-in-page and a screen reader to walk through, and would need the two
+     copies kept in sync for no benefit.
+
+     WHY THE <details> IS ALLOWED TO OPEN AT ALL
+
+     It would be less code to swallow the summary's click and just open the
+     dialog. But <summary> has an implicit role of button with aria-expanded, and
+     a control that reports itself collapsed forever while opening something
+     somewhere else is a lie told to exactly the users who cannot see where the
+     content went. Letting it open keeps aria-expanded true for as long as the
+     panel is on screen — which is what is actually happening — and
+     `aria-haspopup="dialog"`, set below, is what says where. */
+
 
   function initModes() {
     var list = document.querySelector('.modes');
@@ -865,70 +924,151 @@
     var modes = [].slice.call(list.querySelectorAll('details.mode'));
     if (!modes.length) return;
 
-    var openTimer = null;
-    var closeTimer = null;
-    var touched = false;
-
-    // One tap and this is not a mouse session: on touch, `mouseenter` fires on
-    // tap and would fight the native toggle.
-    window.addEventListener('touchstart', function () {
-      touched = true;
-    }, { passive: true, once: true });
-
-    function closeHoverOpened(except) {
-      modes.forEach(function (m) {
-        if (m !== except && m.open && m.dataset.hoverOpen === 'true') {
-          m.open = false;
-          delete m.dataset.hoverOpen;
-        }
-      });
-    }
+    var dialog = document.getElementById('mode-dialog');
+    /* No <dialog> support means no modal — and that is a complete outcome, not a
+       degraded one: the accordion below is the pre-modal behaviour, and it is the
+       same code path a no-JS reader gets. Nothing needs polyfilling. */
+    var modal = dialog && typeof dialog.showModal === 'function' ? buildModal(dialog, modes) : null;
 
     modes.forEach(function (mode) {
-      // A click is a decision: drop the hover flag so leaving cannot undo it.
-      mode.addEventListener('click', function () {
-        clearTimeout(openTimer);
-        clearTimeout(closeTimer);
-        delete mode.dataset.hoverOpen;
-      });
+      var summary = mode.querySelector('summary');
+      if (modal && summary) summary.setAttribute('aria-haspopup', 'dialog');
 
-      mode.addEventListener('mouseenter', function () {
-        if (touched || !FINE.matches) return;
-        clearTimeout(closeTimer);
-        clearTimeout(openTimer);
-        if (mode.open) return;
-        openTimer = setTimeout(function () {
-          // Accordion, but only over hover-opened panels — a pinned one stays.
-          closeHoverOpened(mode);
-          mode.open = true;
-          mode.dataset.hoverOpen = 'true';
-        }, MODE_OPEN_DELAY);
-      });
-
-      mode.addEventListener('mouseleave', function () {
-        if (touched || !FINE.matches) return;
-        clearTimeout(openTimer);
-        if (mode.dataset.hoverOpen !== 'true') return;
-        closeTimer = setTimeout(function () {
-          mode.open = false;
-          delete mode.dataset.hoverOpen;
-        }, MODE_CLOSE_DELAY);
+      /* `toggle` rather than `click`, because it also fires for keyboard
+         activation and for the programmatic closes below — a click listener would
+         miss both. Closing the others re-enters this handler for each of them,
+         which is why it returns immediately unless it is the panel that just
+         OPENED. */
+      mode.addEventListener('toggle', function () {
+        if (!mode.open) return;
+        modes.forEach(function (other) {
+          if (other !== mode) other.open = false;
+        });
+        if (modal) modal.open(mode);
       });
     });
 
-    // Escape closes whatever is open and returns focus to its summary, which is
-    // what a keyboard user expects from a disclosure they just opened.
+    // Escape inside the dialog is the dialog's own; this is the accordion's, for
+    // the no-modal path. Returning focus to the summary is what a keyboard user
+    // expects from a disclosure they just opened.
     document.addEventListener('keydown', function (e) {
-      if (e.key !== 'Escape') return;
+      if (e.key !== 'Escape' || (modal && modal.isOpen())) return;
       var open = modes.filter(function (m) { return m.open; });
       if (!open.length) return;
-      open.forEach(function (m) {
-        m.open = false;
-        delete m.dataset.hoverOpen;
-      });
+      open.forEach(function (m) { m.open = false; });
       var summary = open[0].querySelector('summary');
       if (summary) summary.focus();
     });
+  }
+
+  /* The dialog. Everything hard about a modal — the focus trap, Escape, making
+     the rest of the page inert, and sitting above every stacking context on the
+     page — is showModal()'s job and is not reimplemented here. What is left is
+     four things it does not do: move the panel in and out, fill the header from
+     the card so the two are visibly the same object, step between modes, and lock
+     the document scroll that showModal leaves running behind the backdrop. */
+  function buildModal(dialog, modes) {
+    var host = dialog.querySelector('.mmodal__body');
+    var nameEl = dialog.querySelector('#mode-dialog-name');
+    var gistEl = dialog.querySelector('.mmodal__gist');
+    var countEl = dialog.querySelector('.mmodal__count');
+    var closeBtn = dialog.querySelector('.mmodal__close');
+    var steps = [].slice.call(dialog.querySelectorAll('.mmodal__step'));
+    var current = null;
+
+    function label(mode) {
+      var el = mode.querySelector('.mode__name');
+      return el ? el.textContent.trim() : '';
+    }
+
+    function show(mode) {
+      // Put the outgoing panel back where it came from BEFORE taking the next
+      // one, so the two can never both be detached and there is no window in
+      // which a panel exists in neither place.
+      release();
+      current = mode;
+      var panel = mode.querySelector('.mode__panel');
+      if (panel) host.appendChild(panel);
+
+      nameEl.textContent = label(mode);
+      var gist = mode.querySelector('.mode__gist');
+      gistEl.textContent = gist ? gist.textContent.trim() : '';
+
+      var i = modes.indexOf(mode);
+      countEl.textContent = i + 1 + ' / ' + modes.length;
+      steps.forEach(function (btn) {
+        var dir = parseInt(btn.getAttribute('data-dir'), 10);
+        var span = btn.querySelector('span');
+        // Wraps rather than disabling at the ends. Six modes is a ring you page
+        // through to compare them; a dead button at each end turns the last one
+        // into a cul-de-sac.
+        if (span) span.textContent = label(modes[(i + dir + modes.length) % modes.length]);
+      });
+
+      host.scrollTop = 0;
+    }
+
+    function release() {
+      if (!current) return;
+      var panel = host.querySelector('.mode__panel');
+      if (panel) current.appendChild(panel);
+      current = null;
+    }
+
+    function step(dir) {
+      if (!current) return;
+      var next = modes[(modes.indexOf(current) + dir + modes.length) % modes.length];
+      // Through `open`, not through show(), so the card the reader eventually
+      // closes back to is the one the dialog is actually showing — the accordion
+      // handler is the single place that decides which <details> is open.
+      next.open = true;
+    }
+
+    dialog.addEventListener('close', function () {
+      var last = current;
+      release();
+      lensResume();
+      document.documentElement.classList.remove('mmodal-open');
+      modes.forEach(function (m) { m.open = false; });
+      // Deliberately after showModal's own focus restore, which returns focus to
+      // whatever opened the dialog — three steps later that is the wrong card, and
+      // landing on the wrong one is how a keyboard reader loses their place.
+      var summary = last && last.querySelector('summary');
+      if (summary) summary.focus();
+    });
+
+    // A click that lands on the dialog element itself landed on the backdrop:
+    // the frame inside it covers every pixel the reader would call "the dialog".
+    dialog.addEventListener('click', function (e) {
+      if (e.target === dialog) dialog.close();
+    });
+
+    if (closeBtn) closeBtn.addEventListener('click', function () { dialog.close(); });
+
+    steps.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        step(parseInt(btn.getAttribute('data-dir'), 10));
+      });
+    });
+
+    // Left/right page through the modes. Guarded on the dialog being open so the
+    // listener cannot act on arrow keys pressed anywhere else on the page.
+    dialog.addEventListener('keydown', function (e) {
+      if (!dialog.open) return;
+      if (e.key === 'ArrowRight') { e.preventDefault(); step(1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
+    });
+
+    return {
+      isOpen: function () { return dialog.open; },
+      open: function (mode) {
+        show(mode);
+        if (dialog.open) return;
+        document.documentElement.classList.add('mmodal-open');
+        dialog.showModal();
+        lensStandDown();
+      },
+    };
   }
 
   /* --- 6. hero counters and the orb idle switch ------------------------------ */
