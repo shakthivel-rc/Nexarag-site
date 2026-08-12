@@ -219,3 +219,12 @@ Three rules in the generator are load-bearing:
 The favicon is the one colour that cannot be a token — a `data:` URI has no stylesheet to
 resolve custom properties against — so the generator prints the three values to sync whenever
 the palette changes.
+
+## License
+
+Copyright 2026 <COPYRIGHT HOLDER>.
+
+Licensed under the [Apache License, Version 2.0](LICENSE). The NexaRAG code this site
+describes is licensed under the same terms:
+[Nexarag-api](https://github.com/SHAKTHI-HACKER/Nexarag-api) ·
+[Nexarag-app](https://github.com/SHAKTHI-HACKER/Nexarag-app).
