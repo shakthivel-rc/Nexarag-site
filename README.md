@@ -222,7 +222,7 @@ the palette changes.
 
 ## License
 
-Copyright 2026 <COPYRIGHT HOLDER>.
+Copyright 2026 SHAKTHIVEL RAVICHANDRAN.
 
 Licensed under the [Apache License, Version 2.0](LICENSE). The NexaRAG code this site
 describes is licensed under the same terms:
