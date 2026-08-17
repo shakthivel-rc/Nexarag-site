@@ -383,27 +383,37 @@
       answer.classList.add('surfaced');
     }
 
-    /* Both bounds are measured, not guessed: below 1000px the document and the
-       answer cannot sit side by side, and below 780px of viewport the answer card
-       runs past the bottom of the stage. Pinning a scene the reader has to scroll
-       inside explains nothing, so those viewports get the still instead. */
+    /* Whether the stage can be PINNED — not whether it can animate. Both bounds
+       are measured, not guessed: below 1000px the document and the answer cannot
+       sit side by side, and below 800px of viewport the answer card runs past the
+       bottom of the stage. Pinning a scene the reader has to scroll inside
+       explains nothing. */
     function canPin() {
-      return motionOK() &&
-        window.matchMedia('(min-width: 1000px)').matches &&
+      return window.matchMedia('(min-width: 1000px)').matches &&
         window.innerHeight >= 800;
     }
 
-    if (!canPin()) {
-      // Decided once. A window that later grows keeps the still — re-arming
-      // mid-session would add 300vh underneath a reader who is already past the
-      // scene, and the browser clamps their scroll position to the shorter page
-      // without putting it back. The still is a complete telling, not a stub.
+    /* Reduced motion is the only thing that gets the still now. A phone used to
+       get it too — the section was legible but nothing moved, which on the one
+       section whose whole job is to SHOW retrieval happening read as an
+       animation that had failed to start. It now scrubs the same four beats
+       unpinned, as the section travels the viewport: same measurements, same
+       render, no sticky and no 100vh, which is also the arrangement with the
+       least to go wrong on an iOS toolbar. */
+    if (!motionOK()) {
       tellAsStill();
       onResize(measure);
       return;
     }
 
+    // Decided once. A window that later grows keeps what it booted with:
+    // re-arming mid-session would add 380vh underneath a reader who is already
+    // past the scene, and the browser clamps their scroll position to the
+    // shorter page without putting it back.
+    var pinned = canPin();
+
     scene.classList.add('scene--live');
+    if (pinned) scene.classList.add('scene--pinned');
     measure();
     if (counter) counter.textContent = '0 of ' + pts.length;
 
@@ -495,7 +505,7 @@
 
     var scrub = registerScrub(
       function () {
-        return sceneProgress(scene);
+        return sceneProgress(scene, pinned);
       },
       render
     );
@@ -508,11 +518,9 @@
       }
     }, { rootMargin: '20% 0px 20% 0px' }).observe(scene);
 
+    // Re-measure only. Every position the render reads is stage-relative, so a
+    // rotation or a toolbar collapse changes the geometry but never the beats.
     onResize(function () {
-      if (!canPin()) {
-        tellAsStill();
-        return;
-      }
       measure();
       requestScrubFrame();
     });
@@ -558,18 +566,36 @@
     return v < 0 ? 0 : v > 1 ? 1 : v;
   }
 
-  /* A scene's progress through the viewport, 0 → 1. A scene taller than the
-     viewport (the sticky case) scrubs across its own overflow; a shorter one
-     scrubs as it travels past. One function, so a scene that loses its sticky
-     treatment on a short viewport still animates rather than falling dead. */
-  function sceneProgress(el) {
+  /* An UNPINNED scene's progress, 0 → 1, as it crosses the viewport. Starts once
+     its top has risen past 85% of the screen — high enough that the stage is
+     properly in view rather than a sliver at the bottom — and finishes while its
+     foot is still above the fold, so the last beat is not played underneath it.
+
+     Both ends are expressed against the element's own height, which is what lets
+     one formula serve a section shorter than the viewport and one half again
+     taller: on a phone the stacked stage is ~1250px against ~844px of screen,
+     and the story gets ~1200px of scroll rather than the 400px its overflow
+     alone would have given it. */
+  function travelProgress(r, vh) {
+    var from = vh * 0.85;
+    var to = -(r.height - vh * 0.9);
+    return clamp01((from - r.top) / Math.max(1, from - to));
+  }
+
+  /* A scene's progress through the viewport, 0 → 1. Pinned, it scrubs across its
+     own overflow — that overflow IS the scroll the pin consumes. Unpinned, it
+     scrubs as it travels past.
+
+     `pinned` is passed rather than inferred from the geometry. Inferring it
+     ("taller than the viewport") was true of the pinned case and ALSO of any
+     unpinned section a little taller than the screen, which is every one of them
+     on a phone — and that mapped a whole scene onto the few dozen pixels of
+     difference, so it snapped rather than scrubbed. */
+  function sceneProgress(el, pinned) {
     var r = el.getBoundingClientRect();
     var vh = window.innerHeight;
-    var span = r.height - vh;
-    if (span > 40) return clamp01(-r.top / span);
-    var from = vh * 0.9;
-    var to = vh * 0.15;
-    return clamp01((from - r.top) / (from - to));
+    if (pinned) return clamp01(-r.top / Math.max(1, r.height - vh));
+    return travelProgress(r, vh);
   }
 
   function onResize(fn) {
@@ -662,30 +688,38 @@
   function archProgress(el) {
     var r = el.getBoundingClientRect();
     var vh = window.innerHeight;
-    var span = r.height - vh;
-    if (span > 40) {
-      if (r.top > 0) {
-        var from = vh * 0.85;
-        return clamp01((from - r.top) / from) * ARCH_PRE;
+    // Pinned is a class the layout pass sets, not something to read off the
+    // height — see the note on sceneProgress. On a phone the figure is taller
+    // than the screen and never pinned, and the height test called that the
+    // pinned case: the build was mapped onto (height - viewport), a few dozen
+    // pixels, so the whole diagram assembled itself in one flick of the thumb.
+    if (el.classList.contains('arch--live')) {
+      var span = r.height - vh;
+      if (span > 40) {
+        if (r.top > 0) {
+          var from = vh * 0.85;
+          return clamp01((from - r.top) / from) * ARCH_PRE;
+        }
+        return ARCH_PRE + clamp01(-r.top / span) * (1 - ARCH_PRE);
       }
-      return ARCH_PRE + clamp01(-r.top / span) * (1 - ARCH_PRE);
     }
-    var f = vh * 0.9;
-    var t = vh * 0.12;
-    return clamp01((f - r.top) / (f - t));
+    return travelProgress(r, vh);
   }
 
   function initArchitecture() {
     var scene = document.getElementById('architecture-scene');
     if (!scene) return;
-    var svg = scene.querySelector('.diagram svg');
+    // Two diagrams, one of them display:none at any width — the wide one and the
+    // phone-column one. Both are wired: which is showing is a container query's
+    // decision, made after this runs and remade on every resize.
+    var svgs = [].slice.call(scene.querySelectorAll('.diagram svg'));
     var figure = scene.querySelector('.diagram');
     var head = scene.querySelector('.arch__head');
-    if (!svg || !figure) return;
+    if (!svgs.length || !figure) return;
 
     // Tracing is information, not decoration — it stays available under reduced
     // motion, where the opacity changes simply land instantly.
-    initTrace(svg);
+    svgs.forEach(initTrace);
 
     // Reduced motion: the CSS resting state already IS the final state — every
     // box present, every edge drawn — and nothing below runs, so the scene never

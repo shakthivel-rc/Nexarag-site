@@ -1054,7 +1054,7 @@
         <div class="arch__meter" aria-hidden="true"><span></span></div>
       </div>
       <figure class="diagram">
-        <svg viewBox="0 0 980 620" role="img" aria-labelledby="diagram-title diagram-desc">
+        <svg class="diagram__wide" viewBox="0 0 980 620" role="img" aria-labelledby="diagram-title diagram-desc">
           <title id="diagram-title">CorpusTrace architecture</title>
           <desc id="diagram-desc">
             A browser runs the React SPA, served by nginx, which proxies every API call and the chat
@@ -1214,6 +1214,173 @@
             <text class="d-sub" x="14" y="597">docker compose up — the stack runs on your machine. Document text leaves it only for a provider you chose.</text>
           </g>
         </svg>
+
+        <!-- The same diagram for a phone. Not a squeezed copy: the wide one is
+             980 units across, so fitting it to 360px renders its 12px captions
+             at 4px — and letting it keep its width instead put a horizontal
+             scrollbar inside the card, which showed a third of the picture and
+             cut every box on the right edge mid-word.
+
+             So this is a narrow telling of the same story: same three bands,
+             same eight boxes, same --t0 beats, so it builds band by band off
+             the one --p the scrub writes. Fewer edges, because a phone column
+             cannot carry seven of them legibly — the three that survive are
+             the ones the figcaption calls the heaviest flows. -->
+        <svg class="diagram__narrow" viewBox="0 0 340 892" role="img" aria-labelledby="diagram-n-title diagram-n-desc">
+          <title id="diagram-n-title">CorpusTrace architecture</title>
+          <desc id="diagram-n-desc">
+            A browser runs the React SPA, served by nginx, which proxies every API call and the chat
+            WebSocket to FastAPI. FastAPI hands questions to the RAG engine and answers uploads
+            immediately, queueing them; the in-process indexing worker claims those jobs. Below them
+            sit the three stores: the uploads volume holding original files, the eleven LLM providers
+            called only for synthesis, and MySQL holding chunks, vectors, the entity graph and the
+            job queue itself.
+          </desc>
+
+          <!-- Its own markers rather than the wide diagram's: whichever of the
+               two is not in use is display:none, and a marker looked up inside
+               a subtree the browser is not rendering is not a reference worth
+               betting an arrowhead on. -->
+          <defs>
+            <marker id="arrow-n" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path class="d-arrow" d="M0 0 10 5 0 10z"/>
+            </marker>
+            <marker id="arrow-strong-n" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path class="d-arrow-strong" d="M0 0 10 5 0 10z"/>
+            </marker>
+          </defs>
+
+          <!-- band: browser -->
+          <g class="d-band" style="--t0:0">
+            <text class="d-stage" x="14" y="15">BROWSER</text>
+            <line class="d-tier" x1="86" y1="11" x2="328" y2="11"/>
+          </g>
+
+          <g class="d-node" data-node="spa" style="--t0:.02">
+            <rect class="d-surface-accent" x="26" y="26" width="290" height="68" rx="12"/>
+            <rect class="d-accent" x="27.5" y="38" width="3" height="44" rx="1.5"/>
+            <text class="d-label" x="44" y="50">React 19 SPA</text>
+            <text class="d-sub" x="44" y="70">chat · evidence panel · tasks</text>
+            <text class="d-sub" x="44" y="86">streams answers · cited pages</text>
+          </g>
+
+          <g class="d-flow" data-from="spa" data-to="nginx" style="--t0:.10">
+            <path pathLength="1" class="d-edge-strong d-draw" d="M171 94v20" marker-end="url(#arrow-strong-n)"/>
+            <path class="d-packet" d="M171 94v20"/>
+          </g>
+
+          <g class="d-node" data-node="nginx" style="--t0:.06">
+            <rect class="d-surface" x="26" y="118" width="290" height="68" rx="12"/>
+            <rect class="d-accent d-accent--mute" x="27.5" y="130" width="3" height="44" rx="1.5"/>
+            <text class="d-label" x="44" y="142">nginx</text>
+            <text class="d-sub" x="44" y="162">serves the bundle · proxies /api</text>
+            <text class="d-sub" x="44" y="178">upgrades /chat/ws · unbuffered</text>
+          </g>
+
+          <g class="d-flow" data-from="nginx" data-to="api" style="--t0:.14">
+            <path pathLength="1" class="d-edge-strong d-draw" d="M171 186v42" marker-end="url(#arrow-strong-n)"/>
+            <path class="d-packet" d="M171 186v42"/>
+            <text class="d-sub" x="183" y="204">REST · /chat/ws</text>
+          </g>
+
+          <!-- band: services -->
+          <g class="d-band" style="--t0:.18">
+            <text class="d-stage" x="14" y="210">SERVICES</text>
+            <line class="d-tier" x1="92" y1="206" x2="328" y2="206"/>
+          </g>
+
+          <g class="d-node" data-node="api" style="--t0:.21">
+            <rect class="d-surface-accent" x="26" y="230" width="290" height="84" rx="12"/>
+            <rect class="d-accent" x="27.5" y="242" width="3" height="60" rx="1.5"/>
+            <text class="d-label" x="44" y="254">FastAPI</text>
+            <text class="d-sub" x="44" y="274">JWT sessions · role-based access</text>
+            <text class="d-sub" x="44" y="290">WebSocket chat · HTTP fallback</text>
+            <text class="d-sub" x="44" y="306">uploads answered 202 → queued</text>
+          </g>
+
+          <g class="d-flow" data-from="api" data-to="rag" style="--t0:.33">
+            <path pathLength="1" class="d-edge-strong d-draw" d="M171 314v20" marker-end="url(#arrow-strong-n)"/>
+            <path class="d-packet" d="M171 314v20"/>
+          </g>
+
+          <g class="d-node" data-node="rag" style="--t0:.25">
+            <rect class="d-surface-accent" x="26" y="338" width="290" height="84" rx="12"/>
+            <rect class="d-accent" x="27.5" y="350" width="3" height="60" rx="1.5"/>
+            <text class="d-label" x="44" y="362">RAG engine</text>
+            <text class="d-sub" x="44" y="382">6 modes · lexical scoring</text>
+            <text class="d-sub" x="44" y="398">optional embedding blend</text>
+            <text class="d-sub" x="44" y="414">evidence gate · citations</text>
+          </g>
+
+          <g class="d-node" data-node="worker" style="--t0:.29">
+            <rect class="d-surface-accent" x="26" y="446" width="290" height="84" rx="12"/>
+            <rect class="d-accent" x="27.5" y="458" width="3" height="60" rx="1.5"/>
+            <text class="d-label" x="44" y="470">Indexing worker</text>
+            <text class="d-sub" x="44" y="490">in-process loop · no broker</text>
+            <text class="d-sub" x="44" y="506">per-doc chunking · embeddings</text>
+            <text class="d-sub" x="44" y="522">entity graph · cancellable</text>
+          </g>
+
+          <!-- band: data & models. The trunk belongs to the band rather than to
+               any one flow: all three drops leave the same point, and drawing it
+               three times would darken it three times over. -->
+          <g class="d-band" style="--t0:.37">
+            <text class="d-stage" x="14" y="556">DATA &amp; MODELS</text>
+            <line class="d-tier" x1="142" y1="552" x2="328" y2="552"/>
+            <path class="d-edge d-draw" pathLength="1" d="M171 530v34"/>
+          </g>
+
+          <g class="d-node" data-node="uploads" style="--t0:.40">
+            <rect class="d-surface" x="26" y="586" width="290" height="66" rx="12"/>
+            <rect class="d-accent d-accent--mute" x="27.5" y="598" width="3" height="42" rx="1.5"/>
+            <text class="d-label" x="44" y="610">Uploads volume</text>
+            <text class="d-sub" x="44" y="630">original files on disk</text>
+            <text class="d-sub" x="44" y="646">served to the evidence panel</text>
+          </g>
+
+          <g class="d-node" data-node="llm" style="--t0:.44">
+            <rect class="d-surface" x="26" y="678" width="290" height="66" rx="12"/>
+            <rect class="d-accent d-accent--mute" x="27.5" y="690" width="3" height="42" rx="1.5"/>
+            <text class="d-label" x="44" y="702">LLM providers — 11</text>
+            <text class="d-sub" x="44" y="722">one stdlib seam · no SDKs</text>
+            <text class="d-sub" x="44" y="738">keys encrypted · Ollama = local</text>
+          </g>
+
+          <g class="d-node" data-node="mysql" style="--t0:.48">
+            <rect class="d-surface" x="26" y="770" width="290" height="66" rx="12"/>
+            <rect class="d-accent d-accent--mute" x="27.5" y="782" width="3" height="42" rx="1.5"/>
+            <text class="d-label" x="44" y="794">MySQL</text>
+            <text class="d-sub" x="44" y="814">chunks · terms · vectors · graph</text>
+            <text class="d-sub" x="44" y="830">jobs · users · roles · history</text>
+          </g>
+
+          <!-- The three drops. Straight down for the one directly below; the
+               other two ride the margins, which is the only way past a box in a
+               single column without drawing through it. -->
+          <g class="d-flow" data-from="api" data-to="uploads" style="--t0:.52">
+            <path pathLength="1" class="d-edge d-draw" d="M171 564v22" marker-end="url(#arrow-n)"/>
+            <path class="d-packet" d="M171 564v22"/>
+            <text class="d-sub" x="183" y="580">originals</text>
+          </g>
+
+          <g class="d-flow" data-from="rag" data-to="llm" style="--t0:.56">
+            <path pathLength="1" class="d-edge d-draw" d="M171 564H14v147h12" marker-end="url(#arrow-n)"/>
+            <path class="d-packet" d="M171 564H14v147h12"/>
+            <text class="d-sub" x="24" y="672">synthesis</text>
+          </g>
+
+          <g class="d-flow" data-from="rag" data-to="mysql" style="--t0:.60">
+            <path pathLength="1" class="d-edge d-draw" d="M171 564h157v239h-12" marker-end="url(#arrow-n)"/>
+            <path class="d-packet" d="M171 564h157v239h-12"/>
+            <text class="d-sub" x="324" y="764" text-anchor="end">reads + writes</text>
+          </g>
+
+          <g class="d-band" style="--t0:.70">
+            <rect x="4" y="2" width="332" height="848" rx="16" fill="none" stroke-dasharray="5 5" class="d-edge"/>
+            <text class="d-sub" x="4" y="872">docker compose up — it runs on your machine.</text>
+          </g>
+        </svg>
+
         <figcaption>
           Every service talks to MySQL; only the heaviest flows are drawn. The queue is a MySQL
           table claimed with a conditional update — no broker. The worker also calls a provider

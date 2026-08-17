@@ -2334,6 +2334,12 @@ tbody tr:last-child td {
   margin: 1.75rem 0 2rem;
   overflow-x: auto;
   box-shadow: var(--shadow-sm);
+  /* Queried below to choose which of the two diagrams to draw. It has to be the
+     card and not the viewport: the wide figure needs 46rem, and the width the
+     card actually gets is the viewport minus its own padding minus — above
+     1024px — the sidebar. So the wide one overflows both below ~816px AND
+     between 1024 and ~1112px, which is not a range any max-width can name. */
+  container-type: inline-size;
 }
 
 .diagram svg {
@@ -2341,6 +2347,32 @@ tbody tr:last-child td {
   width: 100%;
   height: auto;
   margin-inline: auto;
+}
+
+/* The narrow diagram is the fallback, not the default: it carries fewer edges,
+   so a viewport that can hold the full one gets the full one. */
+.diagram__narrow {
+  display: none;
+}
+
+@container (max-width: 47rem) {
+  .diagram__wide {
+    display: none;
+  }
+
+  /* `svg.` is load-bearing, not tidiness: the min-width above is set by
+     `.diagram svg`, which outranks a bare class and would leave this one 46rem
+     wide — rendering a 340-unit drawing at 736px inside a 310px card, scaled up
+     and clipped, which looks like a much stranger bug than the one being
+     fixed. */
+  .diagram svg.diagram__narrow {
+    display: block;
+    /* Drawn at 340 units for a phone, so 16px labels land at 16px. Letting it
+       stretch to a 700px card would scale those to 33px — a diagram shouting
+       at a reader who has plenty of room for the real one. */
+    min-width: 0;
+    max-width: 26rem;
+  }
 }
 
 .diagram figcaption {
@@ -2978,15 +3010,27 @@ html.mmodal-open .nx-cursor {
 }
 
 /* 380vh, up from 300vh. The extra 80vh all goes to the last two beats — see the
-   BEATS table in lens.js, which is where the pacing actually lives. */
-.scene--live {
+   BEATS table in lens.js, which is where the pacing actually lives.
+
+   Split from `.scene--live` in 2026-08: live now means "the beats are being
+   scrubbed", which a phone does too — it just does it as the section travels
+   past instead of pinned, because the stacked stage is taller than a phone
+   viewport and pinning something the reader has to scroll inside explains
+   nothing. Only the pinned variant claims the extra height.
+
+   dvh after vh, in that order: on iOS the toolbar makes 100vh the LARGE
+   viewport, so a stage sized in vh runs its last rows underneath the toolbar
+   for as long as the toolbar is showing. Browsers without dvh keep the vh. */
+.scene--pinned {
   height: 380vh;
+  height: 380dvh;
 }
 
-.scene--live .scene__sticky {
+.scene--pinned .scene__sticky {
   position: sticky;
   top: calc(var(--header-h) + 0.5rem);
   height: calc(100vh - var(--header-h) - 1rem);
+  height: calc(100dvh - var(--header-h) - 1rem);
 }
 
 .scene__intro {
@@ -3467,6 +3511,26 @@ html.mmodal-open .nx-cursor {
   color: var(--text-faint);
 }
 
+/* Live but NOT pinned — the phone telling. The page layers were written for the
+   pinned stage, where the sticky block has a fixed height and hands the document
+   column a definite one to be absolutely positioned inside. Unpinned, the stage
+   is only as tall as its contents, so `.doc` measured 0 and an absolutely
+   positioned page inside it drew nothing: the four beats ran perfectly over an
+   empty rectangle where the document should have been.
+
+   So the page and the dim copy go back into normal flow and give the box its
+   height; the sharp copy stays absolute on top of them, which is all the lens
+   clip-path needs. */
+.scene--live:not(.scene--pinned) .doc__page {
+  position: relative;
+  inset: auto;
+}
+
+.scene--live:not(.scene--pinned) .doc__dim {
+  position: relative;
+  inset: auto;
+}
+
 /* Static scene — reduced motion, no JS, narrow or short viewports. The same
    story as a still: document in focus, matches lit, answer beside its
    evidence, all four beats readable. */
@@ -3753,7 +3817,10 @@ html.mmodal-open .nx-cursor {
 .arch--live .arch__sticky {
   position: sticky;
   top: calc(var(--header-h) + 0.5rem);
+  /* See the note on .scene--pinned for why dvh follows vh rather than replacing
+     it. This one pins on an iPad, which is exactly where it bites. */
   height: calc(100vh - var(--header-h) - 1rem);
+  height: calc(100dvh - var(--header-h) - 1rem);
   display: flex;
   flex-direction: column;
   justify-content: center;
