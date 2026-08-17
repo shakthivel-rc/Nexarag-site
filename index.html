@@ -1301,6 +1301,7 @@
       <h2 id="quick-start" class="reveal reveal--wipe">Quick start</h2>
       <p class="section__lede">
         One command from a clean machine. Prerequisites: Docker 24+ with Compose v2, and ~4&nbsp;GB free.
+        Free local embeddings, if you want them, are one command more.
       </p>
 
       <h3 id="run">Run it</h3>
@@ -1357,23 +1358,75 @@ make setup      # clones the SPA beside it, writes .env, builds, starts
       </div>
 
       <h3 id="local-models">Local models (optional)</h3>
-      <p>For a fully local setup, install <a href="https://ollama.com">Ollama</a> and pull one model for chat, one for embeddings:</p>
+      <p>
+        Embeddings are off by default and chosen per document, because switching them on sends that
+        document's text to whichever provider you picked. If you would rather it went nowhere at all,
+        run the model yourself — one command, no key, no account:
+      </p>
 
       <div class="code-block reveal reveal--scan">
         <div class="code-block__head"><span class="code-block__lang">bash</span></div>
-<pre><code data-lang="bash" data-copy-label="Ollama model pulls">ollama pull llama3.1:8b        # chat
-ollama pull nomic-embed-text   # per-document embeddings</code></pre>
+<pre><code data-lang="bash" data-copy-label="local embeddings">make embeddings        # starts Ollama, pulls EmbeddingGemma (622 MB, once)
+make embeddings-down   # stops it; the downloaded model stays</code></pre>
       </div>
 
       <p>
-        Select Ollama in the chat provider picker, and choose an embedding model on the upload form
-        for any document you want semantic matching on. One networking note: from inside the
-        Docker stack, <code>localhost:11434</code> is the container, not your machine — set the
-        provider's base URL to an address the container can reach (and let Ollama listen on it
-        with <code>OLLAMA_HOST=0.0.0.0</code>). A native <code>make setup-native</code> run needs
-        no change. Embeddings are off by default — enabling
-        them is a per-document decision, because it sends that document's text to whichever provider
-        you chose.
+        Nothing to configure afterwards: the API already knows where to find it. In the app, go
+        <strong>Knowledge Bases → upload → Embeddings → Ollama Local → embeddinggemma</strong>.
+        It sits behind a Compose profile, so it costs you nothing until you ask for it — the rest of
+        the stack neither starts it nor depends on it, and a knowledge base that was never configured
+        for embeddings never calls it.
+      </p>
+
+      <div class="callout callout--note reveal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/>
+        </svg>
+        <div>
+          <p><span class="callout__title">Why EmbeddingGemma, and why through Ollama.</span></p>
+          <p>
+            Google's EmbeddingGemma 300M, 768 dimensions — and the one embedding model here whose
+            similarity floor was measured against real documents rather than assumed. Ollama's library
+            serves the same weights as the Hugging Face repo without the gate: no account, no accepted
+            licence, no token. The documents never leave the machine, which is the part that matters
+            for a tool holding somebody's contracts.
+          </p>
+        </div>
+      </div>
+
+      <p>
+        <strong>Local answers too.</strong> That covers retrieval. To have the answer <em>written</em>
+        locally as well, pull a chat model into the same container, then pick
+        <strong>Ollama Local</strong> in the chat provider menu — no key anywhere in the stack:
+      </p>
+
+      <div class="code-block reveal reveal--scan">
+        <div class="code-block__head"><span class="code-block__lang">bash</span></div>
+<pre><code data-lang="bash" data-copy-label="local chat model">docker compose --profile embeddings exec ollama ollama pull llama3.1:8b</code></pre>
+      </div>
+
+      <div class="callout callout--warn reveal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+        </svg>
+        <div>
+          <p><span class="callout__title">Leave <code>OLLAMA_BASE_URL</code> unset.</span></p>
+          <p>
+            Compose already points the API at <code>http://ollama:11434</code>. Naming the variable in
+            <code>.env</code> replaces that with your machine's address, and every call dies with
+            <code>[Errno 111] Connection refused</code> — inside a container,
+            <code>localhost:11434</code> <em>is</em> the container. Unset is right in both modes: a
+            native <code>make setup-native</code> run falls back to <code>localhost:11434</code> on
+            its own.
+          </p>
+        </div>
+      </div>
+
+      <p>
+        Already running Ollama on the host, or running natively? Install it from
+        <a href="https://ollama.com">ollama.com</a>, <code>ollama pull embeddinggemma</code>, and — from
+        the Docker stack only — point the provider's base URL at an address the container can reach,
+        with <code>OLLAMA_HOST=0.0.0.0</code> so it listens there. A native run needs no change at all.
       </p>
     </section>
 
