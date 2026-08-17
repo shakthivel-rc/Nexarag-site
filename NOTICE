@@ -1,4 +1,4 @@
-NexaRAG — project site
+CorpusTrace — project site
 Copyright 2026 SHAKTHIVEL RAVICHANDRAN
 
 This product includes software developed by SHAKTHIVEL RAVICHANDRAN.
@@ -6,9 +6,9 @@ This product includes software developed by SHAKTHIVEL RAVICHANDRAN.
 Licensed under the Apache License, Version 2.0. See the LICENSE file for the
 full terms.
 
-This repository publishes the marketing and documentation site for NexaRAG. It
-describes NexaRAG as open source; the two code repositories are licensed under
+This repository publishes the marketing and documentation site for CorpusTrace. It
+describes CorpusTrace as open source; the two code repositories are licensed under
 the Apache License, Version 2.0:
 
-  https://github.com/SHAKTHI-HACKER/Nexarag-api
-  https://github.com/SHAKTHI-HACKER/Nexarag-app
+  https://github.com/SHAKTHI-HACKER/CorpusTrace-api
+  https://github.com/SHAKTHI-HACKER/CorpusTrace-app

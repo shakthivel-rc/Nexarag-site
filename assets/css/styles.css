@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Nexarag — documentation & landing site
+   CorpusTrace — documentation & landing site
    Single stylesheet. No build step, no external requests.
 
    Theme model: every colour is a custom property defined on bare :root (light).
@@ -778,8 +778,6 @@ code {
   letter-spacing: -0.022em;
 }
 
-/* RAG is an acronym and reads better as one: the eye stops treating "Nexarag" as
-   a single unfamiliar word. */
 .brand__word b {
   font-weight: 800;
   color: var(--primary-text);

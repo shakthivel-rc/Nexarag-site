@@ -1,4 +1,4 @@
-# Nexarag — documentation & landing site
+# CorpusTrace — documentation & landing site
 
 A static site: hand-written HTML, CSS and JavaScript with **no build step, no
 dependencies and no external requests**. It works opened straight from disk, and
@@ -63,7 +63,7 @@ Or skip Actions entirely: **Settings → Pages → Source → Deploy from a bran
 
 Every asset reference is relative (`assets/css/styles.css`, not `/assets/...`), so
 the site works unchanged at a user page (`org.github.io`) *and* at a project page
-(`org.github.io/Nexarag-site/`). Keep it that way — a leading slash breaks project
+(`org.github.io/CorpusTrace-site/`). Keep it that way — a leading slash breaks project
 pages and the failure only shows up after deploy.
 
 ## Editing
@@ -111,7 +111,7 @@ pages and the failure only shows up after deploy.
     between exempt and owing 3:1 under SC 1.4.11. Flat output made the contrast
     audit report five failures per theme for boxes whose labels sit at 16:1.
 
-  The numbers and formulas are read off `Nexarag-api/rag/service.py`, and the
+  The numbers and formulas are read off `CorpusTrace-api/rag/service.py`, and the
   function each row describes is named in a comment beside it. If retrieval
   changes, these change.
 - **A mode's detail panel** — the copy lives in `index.html` inside
@@ -224,7 +224,7 @@ the palette changes.
 
 Copyright 2026 SHAKTHIVEL RAVICHANDRAN.
 
-Licensed under the [Apache License, Version 2.0](LICENSE). The NexaRAG code this site
+Licensed under the [Apache License, Version 2.0](LICENSE). The CorpusTrace code this site
 describes is licensed under the same terms:
-[Nexarag-api](https://github.com/SHAKTHI-HACKER/Nexarag-api) ·
-[Nexarag-app](https://github.com/SHAKTHI-HACKER/Nexarag-app).
+[CorpusTrace-api](https://github.com/SHAKTHI-HACKER/CorpusTrace-api) ·
+[CorpusTrace-app](https://github.com/SHAKTHI-HACKER/CorpusTrace-app).

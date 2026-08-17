@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Nexarag site behaviour — theme, navigation, scroll-spy, copy, highlighting.
+   CorpusTrace site behaviour — theme, navigation, scroll-spy, copy, highlighting.
 
    No dependencies and no network requests: the site is meant to work from a
    file:// checkout and from GitHub Pages identically, and a CDN script is one
@@ -11,7 +11,7 @@
 
   /* --- theme -------------------------------------------------------------- */
 
-  var STORAGE_KEY = 'nexarag-theme';
+  var STORAGE_KEY = 'corpustrace-theme';
 
   function resolvedTheme() {
     var explicit = document.documentElement.getAttribute('data-theme');

@@ -1,4 +1,4 @@
-/* Palette generator for Nexarag-site.
+/* Palette generator for the CorpusTrace site.
  *
  *   node scripts/generate-palette.mjs            # list configurations
  *   node scripts/generate-palette.mjs <id>       # write that configuration into styles.css

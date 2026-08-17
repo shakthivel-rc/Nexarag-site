@@ -19,7 +19,7 @@
  *
  * THE DIAGRAMS ARE READ OFF THE SOURCE, NOT OFF RAG FOLKLORE
  *
- * Every box, number and formula below was taken from Nexarag-api/rag/service.py.
+ * Every box, number and formula below was taken from CorpusTrace-api/rag/service.py.
  * The function each row describes is named in a comment beside it. Where the code
  * does something the literature would not predict — the entity boost SATURATES and
  * is capped at a fraction of the best lexical score; the "agent" plans with a
@@ -98,7 +98,7 @@ const F = {
 
 /* ------------------------------------------------------------------ specs */
 
-/* Each spec is read against a named function in Nexarag-api/rag/service.py. The
+/* Each spec is read against a named function in CorpusTrace-api/rag/service.py. The
    trailing three rows of most modes are the same three rows on purpose: the
    sufficiency gate in `_plan_answer` runs after the mode has returned, so every
    mode really does end identically. Showing that six times is the point — it is

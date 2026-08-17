@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Nexarag — the lens motif engine.
+   CorpusTrace — the lens motif engine.
 
    Everything here animates ONE idea: a lens scanning a body of text and
    retrieving what matters. Eight parts:
