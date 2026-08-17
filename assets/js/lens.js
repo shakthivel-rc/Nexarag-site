@@ -505,7 +505,7 @@
 
     var scrub = registerScrub(
       function () {
-        return sceneProgress(scene, pinned);
+        return sceneProgress(scene, stage, pinned);
       },
       render
     );
@@ -572,30 +572,43 @@
      foot is still above the fold, so the last beat is not played underneath it.
 
      Both ends are expressed against the element's own height, which is what lets
-     one formula serve a section shorter than the viewport and one half again
-     taller: on a phone the stacked stage is ~1250px against ~844px of screen,
-     and the story gets ~1200px of scroll rather than the 400px its overflow
-     alone would have given it. */
+     one formula serve a figure shorter than the viewport and one half again
+     taller.
+
+     It is measured on the PICTURE — the stage, the figure — and never on the
+     section that contains it. The section carries a heading, a lede and a
+     trailing note, so anchoring to it spends progress while the picture is
+     still below the fold and runs out of progress while it is still on screen:
+     the first version of this ran the whole story in the bottom quarter of a
+     phone screen and finished the retrieval scene's finale at the very bottom
+     edge, which read as the last beat never playing at all.
+
+     The window is therefore stated in terms of the picture's own edges: nothing
+     moves until its top has risen to 0.7vh — a third of it in view — and it
+     finishes with its FOOT at 0.72vh, which is where the answer card and the
+     last band of the diagram live. Both ends are places the reader is looking
+     at. */
   function travelProgress(r, vh) {
-    var from = vh * 0.85;
-    var to = -(r.height - vh * 0.9);
+    var from = vh * 0.7;              // picture's top here → p = 0
+    var to = vh * 0.72 - r.height;    // picture's top here → its foot is at 0.72vh → p = 1
     return clamp01((from - r.top) / Math.max(1, from - to));
   }
 
   /* A scene's progress through the viewport, 0 → 1. Pinned, it scrubs across its
-     own overflow — that overflow IS the scroll the pin consumes. Unpinned, it
-     scrubs as it travels past.
+     own overflow — that overflow IS the scroll the pin consumes, so the section
+     is the right thing to measure. Unpinned, the picture is.
 
      `pinned` is passed rather than inferred from the geometry. Inferring it
      ("taller than the viewport") was true of the pinned case and ALSO of any
      unpinned section a little taller than the screen, which is every one of them
      on a phone — and that mapped a whole scene onto the few dozen pixels of
      difference, so it snapped rather than scrubbed. */
-  function sceneProgress(el, pinned) {
-    var r = el.getBoundingClientRect();
-    var vh = window.innerHeight;
-    if (pinned) return clamp01(-r.top / Math.max(1, r.height - vh));
-    return travelProgress(r, vh);
+  function sceneProgress(el, focus, pinned) {
+    if (pinned) {
+      var r = el.getBoundingClientRect();
+      return clamp01(-r.top / Math.max(1, r.height - window.innerHeight));
+    }
+    return travelProgress(focus.getBoundingClientRect(), window.innerHeight);
   }
 
   function onResize(fn) {
@@ -685,7 +698,7 @@
         all, and the same function has to scrub it as it travels past. */
   var ARCH_PRE = 0.26;
 
-  function archProgress(el) {
+  function archProgress(el, focus) {
     var r = el.getBoundingClientRect();
     var vh = window.innerHeight;
     // Pinned is a class the layout pass sets, not something to read off the
@@ -703,7 +716,9 @@
         return ARCH_PRE + clamp01(-r.top / span) * (1 - ARCH_PRE);
       }
     }
-    return travelProgress(r, vh);
+    // Unpinned: the figure, not the scene — the scene also holds the heading,
+    // the hint and the build meter above it.
+    return travelProgress(focus.getBoundingClientRect(), vh);
   }
 
   function initArchitecture() {
@@ -794,7 +809,7 @@
 
     var scrub = registerScrub(
       function () {
-        return archProgress(scene);
+        return archProgress(scene, figure);
       },
       toward
     );
@@ -806,7 +821,7 @@
       // Write the starting beat with the class, not on the first scroll. Armed
       // but unwritten, --p keeps its resting 1 and the diagram sits fully drawn
       // until something scrolls — which would then snap it back to empty.
-      cur = archProgress(scene);
+      cur = archProgress(scene, figure);
       target = cur;
       write(cur);
     }

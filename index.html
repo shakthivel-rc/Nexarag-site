@@ -16,7 +16,15 @@
      cannot reference a token. `node scripts/generate-palette.mjs <config>` prints the three
      values to paste here whenever the palette changes. -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23556ae4'/%3E%3Cg stroke='%23fcfdfd' stroke-width='2' stroke-linecap='round' opacity='.6'%3E%3Cpath d='M7 9.5h13M7 14h6.5'/%3E%3C/g%3E%3Cpath d='M12.5 18h10' stroke='%2300564c' stroke-width='2.4' stroke-linecap='round'/%3E%3Cg fill='none' stroke='%23fcfdfd' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='17.5' cy='18' r='6.6'/%3E%3Cpath d='M22.2 22.7 26.3 26.8'/%3E%3C/g%3E%3C/svg%3E">
-<link rel="stylesheet" href="assets/css/styles.css">
+<!-- ?v= is rewritten to the commit sha by the deploy workflow, and it is not
+     cosmetic. Pages serves every file with the same max-age, so a visit made
+     inside that window takes the HTML from the network and the CSS and JS from
+     disk — new markup against old stylesheet and old script. That failure does
+     not look like a cache: it looks like the change half-landed. It shipped
+     exactly once, as two diagrams stacked on a phone (the new markup, none of
+     the new rules) above a retrieval scene frozen at its finished state (the
+     new markup, the old script's narrow-viewport branch). -->
+<link rel="stylesheet" href="assets/css/styles.css?v=dev">
 
 <script>
   /* Applied before first paint: reading the preference from JS after the
@@ -1665,7 +1673,7 @@ make embeddings-down   # stops it; the downloaded model stays</code></pre>
   </div>
 </footer>
 
-<script src="assets/js/site.js"></script>
-<script src="assets/js/lens.js"></script>
+<script src="assets/js/site.js?v=dev"></script>
+<script src="assets/js/lens.js?v=dev"></script>
 </body>
 </html>
