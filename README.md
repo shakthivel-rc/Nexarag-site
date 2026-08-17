@@ -226,5 +226,5 @@ Copyright 2026 SHAKTHIVEL RAVICHANDRAN.
 
 Licensed under the [Apache License, Version 2.0](LICENSE). The CorpusTrace code this site
 describes is licensed under the same terms:
-[CorpusTrace-api](https://github.com/SHAKTHI-HACKER/CorpusTrace-api) ·
-[CorpusTrace-app](https://github.com/SHAKTHI-HACKER/CorpusTrace-app).
+[CorpusTrace-api](https://github.com/shakthivel-rc/CorpusTrace-api) ·
+[CorpusTrace-app](https://github.com/shakthivel-rc/CorpusTrace-app).
