@@ -88,11 +88,11 @@ pages and the failure only shows up after deploy.
   The copy button is injected by JS; the block renders fine without it.
 - **A new section** — add the `<section>` and a matching entry in the sidebar
   `.toc`. Scroll-spy picks it up automatically from the `href`.
-- **The six retrieval-mode flowcharts** — do not hand-edit the SVG in
+- **The seven retrieval-mode flowcharts** — do not hand-edit the SVG in
   `index.html`. It is generated:
 
   ```bash
-  node scripts/generate-flows.mjs            # write all six into index.html
+  node scripts/generate-flows.mjs            # write all seven into index.html
   node scripts/generate-flows.mjs --stdout   # print them, change nothing
   node scripts/generate-flows.mjs --check    # fail if index.html is out of date
   ```
@@ -111,9 +111,10 @@ pages and the failure only shows up after deploy.
     between exempt and owing 3:1 under SC 1.4.11. Flat output made the contrast
     audit report five failures per theme for boxes whose labels sit at 16:1.
 
-  The numbers and formulas are read off `CorpusTrace-api/rag/service.py`, and the
-  function each row describes is named in a comment beside it. If retrieval
-  changes, these change.
+  The numbers and formulas are read off `CorpusTrace-api/rag/service.py` — and,
+  for High Precision, off `CorpusTrace-api/rag/precision/` — with the function
+  each row describes named in a comment beside it. If retrieval changes, these
+  change.
 - **A mode's detail panel** — the copy lives in `index.html` inside
   `.mode__panel`. With scripting on, that element is *moved* into the shared
   `<dialog class="mmodal">` when the mode is opened and moved back on close, so

@@ -20,7 +20,7 @@
         teleporting it.
      5. The data-flow rail — the reader's scroll position advances the pipeline.
      6. Hero counters, and parking the orbs when the hero is off screen.
-     7. The mode disclosures — six native <details> whose panels are moved into
+     7. The mode disclosures — seven native <details> whose panels are moved into
         one shared modal <dialog> on open, paged through with prev/next, and
         moved back on close. Opening is still the element's own click behaviour;
         with scripting off the panels expand in place instead.
@@ -936,7 +936,7 @@
   }
 
   /* --- 7. the mode disclosures -----------------------------------------------
-     Six retrieval modes; each one's detail panel opens in a modal dialog.
+     Seven retrieval modes; each one's detail panel opens in a modal dialog.
 
      WHY THE MARKUP IS STILL <details>
 
@@ -950,9 +950,9 @@
 
      WHY THE PANEL IS MOVED AND NOT CLONED
 
-     One dialog serves all six. On open, that mode's `.mode__panel` element is
+     One dialog serves all seven. On open, that mode's `.mode__panel` element is
      moved into the dialog body; on close it goes back to its <details>. Cloning
-     would put a second copy of six flowcharts and six step lists in the document
+     would put a second copy of seven flowcharts and seven step lists in the document
      for find-in-page and a screen reader to walk through, and would need the two
      copies kept in sync for no benefit.
 
@@ -1048,7 +1048,7 @@
       steps.forEach(function (btn) {
         var dir = parseInt(btn.getAttribute('data-dir'), 10);
         var span = btn.querySelector('span');
-        // Wraps rather than disabling at the ends. Six modes is a ring you page
+        // Wraps rather than disabling at the ends. Seven modes is a ring you page
         // through to compare them; a dead button at each end turns the last one
         // into a cul-de-sac.
         if (span) span.textContent = label(modes[(i + dir + modes.length) % modes.length]);

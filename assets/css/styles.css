@@ -1441,7 +1441,7 @@ code {
   margin: 1.25rem 0 1rem;
   /* No `align-items: start`. Grid's default stretch is what makes every card in a
      row the same height regardless of how many lines its description runs to; with
-     start, each card shrank to its own text and the six Details rows landed at four
+     start, each card shrank to its own text and the Details rows landed at four
      different heights. An open panel is the only item in its row (it spans
      1 / -1), so stretching costs it nothing. */
 }
@@ -1750,7 +1750,7 @@ html:not(.nx-js) .modes details[open] {
 }
 
 /* --- the mode flowcharts --------------------------------------------------
-   Six generated SVGs — scripts/generate-flows.mjs owns every coordinate in them;
+   Seven generated SVGs — scripts/generate-flows.mjs owns every coordinate in them;
    this file owns every colour and type size. That split is deliberate: the
    generator has no idea what a theme is, and re-running it must never be able to
    change what a diagram looks like, only where its boxes are.
@@ -1889,7 +1889,7 @@ html:not(.nx-js) .modes details[open] {
 }
 
 /* --- the mode dialog ------------------------------------------------------
-   One <dialog> for all six modes. The panel element is MOVED in and out rather
+   One <dialog> for all seven modes. The panel element is MOVED in and out rather
    than cloned, so there is exactly one copy of each flowchart in the document —
    see the comment on the element in index.html.
 
@@ -3697,7 +3697,7 @@ html.mmodal-open .nx-cursor {
   transition-delay: var(--rd, 0s);
 }
 
-/* The six modes are catalogued, not revealed: the light crosses each entry in
+/* The modes are catalogued, not revealed: the light crosses each entry in
    turn and leaves its name lit — the same illumination the scene uses on a
    matched term. */
 .nx-js .reveal--catalogue {
@@ -4415,7 +4415,7 @@ html.mmodal-open .nx-cursor {
         cover calc(24% + var(--ri, 0) * 3%);
     }
 
-    /* The six modes are catalogued, not revealed: each entry rises, the light
+    /* The modes are catalogued, not revealed: each entry rises, the light
        crosses it, and its name stays lit — one after another, at the reader's
        own pace rather than on a fixed 70ms stagger. */
     .mode {

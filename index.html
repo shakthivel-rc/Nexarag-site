@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CorpusTrace — six RAG techniques, one workbench, zero pipeline code</title>
+<title>CorpusTrace — seven RAG techniques, one workbench, zero pipeline code</title>
 <meta name="description" content="CorpusTrace is an open-source, self-hosted workbench for retrieval-augmented generation. Upload documents once, then switch retrieval modes, chunking strategies and LLM providers per question — and see the exact passages every answer stands on.">
 <meta name="color-scheme" content="light dark">
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="CorpusTrace — compare RAG techniques without building them">
-<meta property="og:description" content="Six retrieval modes, four chunking strategies, eleven LLM providers. Download it, run it with Docker, switch configs per question.">
+<meta property="og:description" content="Seven retrieval modes, four chunking strategies, eleven LLM providers. Download it, run it with Docker, switch configs per question.">
 <meta name="twitter:card" content="summary_large_image">
 
 <!-- Favicon colours are hand-synced with the palette: a data: URI has no stylesheet, so it
@@ -108,7 +108,7 @@
   <div class="hero__inner">
     <div class="hero__copy">
       <span class="eyebrow">Open source · self-hosted · Docker</span>
-      <div class="h1wrap"><h1><span class="w" style="--wi:0">Six</span> <span class="w" style="--wi:1">RAG</span> <span class="w w--hit" style="--wi:2">techniques.</span><br><span class="w" style="--wi:3">One</span> <span class="w w--hit" style="--wi:4">workbench.</span><br><em><span class="w" style="--wi:5">Zero</span> <span class="w" style="--wi:6">pipeline</span> <span class="w w--hit" style="--wi:7">code.</span></em></h1></div>
+      <div class="h1wrap"><h1><span class="w" style="--wi:0">Seven</span> <span class="w" style="--wi:1">RAG</span> <span class="w w--hit" style="--wi:2">techniques.</span><br><span class="w" style="--wi:3">One</span> <span class="w w--hit" style="--wi:4">workbench.</span><br><em><span class="w" style="--wi:5">Zero</span> <span class="w" style="--wi:6">pipeline</span> <span class="w w--hit" style="--wi:7">code.</span></em></h1></div>
       <p class="hero__lede">
         CorpusTrace lets you run and compare retrieval-augmented generation strategies on your own
         documents without building any of them. Download it, run it, switch configs — retrieval
@@ -131,7 +131,7 @@
       </div>
 
       <dl class="hero__facts">
-        <div class="fact"><dd class="fact__value">6</dd><dt class="fact__label">retrieval modes</dt></div>
+        <div class="fact"><dd class="fact__value">7</dd><dt class="fact__label">retrieval modes</dt></div>
         <div class="fact"><dd class="fact__value">4</dd><dt class="fact__label">chunking strategies</dt></div>
         <div class="fact"><dd class="fact__value">11</dd><dt class="fact__label">LLM providers</dt></div>
         <div class="fact"><dd class="fact__value">1,650+</dd><dt class="fact__label">tests</dt></div>
@@ -175,7 +175,7 @@
       <li><a href="#watch-it-retrieve">Watch it retrieve</a></li>
       <li><a href="#what-it-is">What it is</a>
         <ul class="toc__sub">
-          <li><a href="#modes">The six modes</a></li>
+          <li><a href="#modes">The seven modes</a></li>
         </ul>
       </li>
       <li><a href="#why">Why it exists</a></li>
@@ -311,7 +311,7 @@
             </svg>
           </div>
           <h3>Switch modes mid-conversation</h3>
-          <p>Six retrieval strategies in a picker. Re-ask the same question under another mode and compare the citations.</p>
+          <p>Seven retrieval strategies in a picker. Re-ask the same question under another mode and compare the citations.</p>
         </article>
 
         <article class="card reveal reveal--focus lockon" style="--rd:.07s;--ri:1">
@@ -345,7 +345,7 @@
         </article>
       </div>
 
-      <h3 id="modes">The six modes</h3>
+      <h3 id="modes">The seven modes</h3>
       <!-- The lens catalogues the available strategies: one sweep per entry, in
            sequence, each name lighting up as the light passes over it. -->
       <!-- Each mode is a <details>, opened by CLICK. The element gives click, tap and
@@ -964,13 +964,197 @@
             </div>
           </div>
         </details>
+
+        <details class="mode lockon" style="--mi:6" data-mode="high-precision">
+          <summary>
+            <span class="mode__scan" aria-hidden="true"></span>
+            <span class="mode__name">High Precision</span>
+            <p class="mode__gist">Ranks the whole base twice, then re-scores the shortlist word by word against your question.</p>
+            <span class="mode__more" aria-hidden="true">
+              <svg class="mode__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 4.5h-5v5"/><path d="M14.5 4.5h5v5"/><path d="M9.5 19.5h-5v-5"/><path d="M14.5 19.5h5v-5"/></svg>
+              See how it works
+            </span>
+          </summary>
+          <div class="mode__panel">
+            <div class="mode__flow" data-flow="high-precision">
+            <!-- FLOW:high-precision:START -->
+<svg class="flow" viewBox="0 0 420 1910.5" role="img" aria-labelledby="flow-high-precision-t flow-high-precision-d">
+<title id="flow-high-precision-t">High Precision — ten stages, and no language model in any of them</title>
+<desc id="flow-high-precision-d">The one mode that does not reuse the default scoring. Your question is folded to a canonical form, spell-checked against the words your own documents actually contain, and widened by dictionary — abbreviations, synonyms, entity aliases and word forms — with every added word weighted lower than the ones you typed and capped so it can surface a passage but never outrank a literal match. Filters read out of the question are applied only when enough passages survive them. Okapi BM25 and, where a document was embedded, cosine similarity then run over the whole base; their normalised scores are combined with your own words and any metadata agreement into a pool of a hundred. A cross-encoder re-scores each of those as a pair with the question — coverage, how tightly the words sit together, whether their order survived, an exact substring, a heading match, and where in the passage the match falls — and keeps twenty. Near-duplicates are dropped at 90% term overlap, ten are chosen for relevance against redundancy, and each one is handed its surrounding passages as context. The same evidence gate every other mode ends on follows. Nothing here builds a prompt or asks a model anything.</desc>
+<defs><marker id="fa-high-precision" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.4" markerHeight="5.4" orient="auto-start-reverse"><path class="f-arrow" d="M0 0 10 5 0 10z"/></marker></defs>
+<path class="f-edge" d="M278 1742.5H287" marker-end="url(#fa-high-precision)"/>
+<path class="f-edge" d="M144 168.5V197.5" marker-end="url(#fa-high-precision)"/>
+<path class="f-edge" d="M144 564V593" marker-end="url(#fa-high-precision)"/>
+<path class="f-edge" d="M144 707.5V722.5"/>
+<path class="f-edge" d="M106.5 722.5H313.5"/>
+<path class="f-edge" d="M106.5 722.5V736.5" marker-end="url(#fa-high-precision)"/>
+<path class="f-edge" d="M313.5 722.5V736.5" marker-end="url(#fa-high-precision)"/>
+<path class="f-edge" d="M109 820C109 842 144 842 144 858"/>
+<path class="f-edge" d="M311 820C311 842 144 842 144 858"/>
+<path class="f-edge" d="M144 856V863" marker-end="url(#fa-high-precision)"/>
+<path class="f-edge" d="M144 1040.5V1069.5" marker-end="url(#fa-high-precision)"/>
+<path class="f-edge" d="M144 1262.5V1291.5" marker-end="url(#fa-high-precision)"/>
+<path class="f-edge" d="M144 1391.5V1420.5" marker-end="url(#fa-high-precision)"/>
+<path class="f-edge" d="M144 1552.5V1581.5" marker-end="url(#fa-high-precision)"/>
+<path class="f-edge" d="M144 1681.5V1710.5" marker-end="url(#fa-high-precision)"/>
+<path class="f-edge" d="M144 1773.5V1802.5" marker-end="url(#fa-high-precision)"/>
+<g class="f-node">
+<rect class="f-box f-box--accent" x="10" y="8" width="268" height="160.5" rx="9"/>
+<text class="f-lab" x="21" y="31.04">Your question, folded to one</text>
+<text class="f-lab" x="21" y="49.04">form</text>
+<text class="f-sub" x="21" y="69.31">unicode, punctuation, case and</text>
+<text class="f-sub" x="21" y="83.81">possessives flattened — then</text>
+<text class="f-sub" x="21" y="98.31">spelling checked against your own</text>
+<text class="f-sub" x="21" y="112.81">documents, never a general</text>
+<text class="f-sub" x="21" y="127.31">dictionary: your files are the only</text>
+<text class="f-sub" x="21" y="141.81">authority on what your vocabulary</text>
+<text class="f-sub" x="21" y="156.31">is.</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="10" y="198.5" width="268" height="365.5" rx="9"/>
+<text class="f-head" x="21" y="217.64">WIDENED BY DICTIONARY, NEVER BY A</text>
+<text class="f-head" x="21" y="230.64">MODEL</text>
+<text class="f-lane" x="21" y="250.98">abbreviations</text>
+<text class="f-sub" x="27" y="267.81">auth · config · docs · k8s · env ·</text>
+<text class="f-sub" x="27" y="282.31">repo</text>
+<text class="f-lane" x="21" y="303.98">synonyms and domain terms</text>
+<text class="f-sub" x="27" y="320.81">from a built-in list plus any file</text>
+<text class="f-sub" x="27" y="335.31">you point it at</text>
+<text class="f-lane" x="21" y="356.98">entity aliases</text>
+<text class="f-sub" x="27" y="373.81">the recurring names pulled out of</text>
+<text class="f-sub" x="27" y="388.31">your own documents</text>
+<text class="f-lane" x="21" y="409.98">word forms and hyphenation</text>
+<text class="f-sub" x="27" y="426.81">plurals, -ing, -ed · runbook ⇄</text>
+<text class="f-sub" x="27" y="441.31">run-book ⇄ run book</text>
+<line class="f-rule" x1="21" y1="448.5" x2="267" y2="448.5"/>
+<text class="f-sub" x="21" y="465.81">An added word carries 0.45 of a</text>
+<text class="f-sub" x="21" y="480.31">typed one, and everything they</text>
+<text class="f-sub" x="21" y="494.81">contribute together is capped at</text>
+<text class="f-sub" x="21" y="509.31">35% of your best literal match —</text>
+<text class="f-sub" x="21" y="523.81">so a synonym can surface a</text>
+<text class="f-sub" x="21" y="538.31">passage, and can never outrank the</text>
+<text class="f-sub" x="21" y="552.81">words you actually used.</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="10" y="594" width="268" height="113.5" rx="9"/>
+<text class="f-lab" x="21" y="617.04">Filters read out of the question</text>
+<text class="f-sub" x="21" y="637.31">a version, a document type or a</text>
+<text class="f-sub" x="21" y="651.81">category. One that would empty the</text>
+<text class="f-sub" x="21" y="666.31">pool is recorded and dropped — a</text>
+<text class="f-sub" x="21" y="680.81">guess read out of a question must</text>
+<text class="f-sub" x="21" y="695.31">not remove the answer.</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="8" y="737.5" width="197" height="82.5" rx="9"/>
+<text class="f-lane" x="19" y="758.98">Okapi BM25</text>
+<text class="f-sub" x="19" y="778.81">k1 1.2, b 0.75 — a</text>
+<text class="f-sub" x="19" y="793.31">repeated term saturates</text>
+<text class="f-sub" x="19" y="807.81">instead of accumulating</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="215" y="737.5" width="197" height="82.5" rx="9"/>
+<text class="f-lane" x="226" y="758.98">Cosine, where embedded</text>
+<text class="f-sub" x="226" y="778.81">one embedding model</text>
+<text class="f-sub" x="226" y="793.31">only; vectors from two</text>
+<text class="f-sub" x="226" y="807.81">never meet in one score</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--formula" x="10" y="864" width="268" height="176.5" rx="9"/>
+<text class="f-head" x="21" y="883.14">COMBINE, THEN KEEP 100</text>
+<text class="f-mono" x="21" y="903.09">score = 1.0 × cosine (normalised)</text>
+<text class="f-mono" x="21" y="918.59">      + 1.0 × BM25   (normalised)</text>
+<text class="f-mono" x="21" y="934.09">      + 0.5 × your words, in full</text>
+<text class="f-mono" x="21" y="949.59">      + 0.35 × metadata agreement</text>
+<text class="f-mono" x="21" y="965.09">      × (1 − any penalty)</text>
+<text class="f-sub" x="21" y="984.81">both are normalised first: a cosine</text>
+<text class="f-sub" x="21" y="999.31">and a BM25 score are different</text>
+<text class="f-sub" x="21" y="1013.81">scales and do not add up as they</text>
+<text class="f-sub" x="21" y="1028.31">are</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--formula" x="10" y="1070.5" width="268" height="192" rx="9"/>
+<text class="f-head" x="21" y="1089.64">CROSS-ENCODER — SCORES THE PAIR</text>
+<text class="f-mono" x="21" y="1109.59">IDF coverage         0.34</text>
+<text class="f-mono" x="21" y="1125.09">word proximity       0.22</text>
+<text class="f-mono" x="21" y="1140.59">preserved word order 0.16</text>
+<text class="f-mono" x="21" y="1156.09">exact substring      0.14</text>
+<text class="f-mono" x="21" y="1171.59">heading match        0.08</text>
+<text class="f-mono" x="21" y="1187.09">position in passage  0.06</text>
+<text class="f-sub" x="21" y="1206.81">Scored per (question, passage)</text>
+<text class="f-sub" x="21" y="1221.31">pair, so none of it can be</text>
+<text class="f-sub" x="21" y="1235.81">precomputed. Reads only the words</text>
+<text class="f-sub" x="21" y="1250.31">you typed. Keeps the top 20.</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="10" y="1292.5" width="268" height="99" rx="9"/>
+<text class="f-lab" x="21" y="1315.54">Drop near-duplicates</text>
+<text class="f-sub" x="21" y="1335.81">90% shared terms. The chunker</text>
+<text class="f-sub" x="21" y="1350.31">overlaps by design, so a base</text>
+<text class="f-sub" x="21" y="1364.81">genuinely holds passages that say</text>
+<text class="f-sub" x="21" y="1379.31">the same thing twice</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--formula" x="10" y="1421.5" width="268" height="131" rx="9"/>
+<text class="f-head" x="21" y="1440.64">RELEVANCE AGAINST REDUNDANCY</text>
+<text class="f-mono" x="21" y="1460.59">pick by 0.7 × relevance</text>
+<text class="f-mono" x="21" y="1476.09">      − 0.3 × similarity to</text>
+<text class="f-mono" x="21" y="1491.59">            what is already picked</text>
+<text class="f-sub" x="21" y="1511.31">ten survive — the top ten by score</text>
+<text class="f-sub" x="21" y="1525.81">alone would be the same passage</text>
+<text class="f-sub" x="21" y="1540.31">restated ten ways</text>
+</g>
+<g class="f-node">
+<rect class="f-box" x="10" y="1582.5" width="268" height="99" rx="9"/>
+<text class="f-lab" x="21" y="1605.54">Hand each one its neighbours</text>
+<text class="f-sub" x="21" y="1625.81">its neighbours in the same file, up</text>
+<text class="f-sub" x="21" y="1640.31">to 2400 characters. Nothing is</text>
+<text class="f-sub" x="21" y="1654.81">re-chunked — the window is</text>
+<text class="f-sub" x="21" y="1669.31">assembled at question time</text>
+</g>
+<g class="f-node">
+<polygon class="f-box" points="26,1711.5 262,1711.5 278,1742.5 262,1773.5 26,1773.5 10,1742.5"/>
+<text class="f-lab" x="32" y="1738.54">Do the top 3 passages cover</text>
+<text class="f-lab" x="32" y="1756.54">35% of your words?</text>
+</g>
+<g class="f-node">
+<rect class="f-box f-box--stop" x="292" y="1694" width="118" height="97" rx="16"/>
+<text class="f-lane" x="303" y="1715.48">Refuse</text>
+<text class="f-sub" x="303" y="1735.31">and name</text>
+<text class="f-sub" x="303" y="1749.81">which of your</text>
+<text class="f-sub" x="303" y="1764.31">words matched</text>
+<text class="f-sub" x="303" y="1778.81">nothing</text>
+</g>
+<text class="f-tag" text-anchor="end" x="288" y="1737.5">no</text>
+<g class="f-node">
+<rect class="f-box f-box--good" x="10" y="1803.5" width="268" height="54" rx="16"/>
+<text class="f-lab" x="21" y="1826.54">Answer, from those passages,</text>
+<text class="f-lab" x="21" y="1844.54">with citations</text>
+</g>
+<text class="f-note" x="12" y="1880.81">No prompt is built and no model is asked anything. The reranker is</text>
+<text class="f-note" x="12" y="1895.31">arithmetic over six features.</text>
+</svg>
+            <!-- FLOW:high-precision:END -->
+            </div>
+            <div class="mode__detail">
+              <p class="mode__heading">How it works</p>
+              <ol class="mode__steps">
+                <li><b>Widen the question, by dictionary</b><span>Your wording is folded to one form and spell-checked against the words your own documents contain — never a general dictionary. Abbreviations, synonyms, entity aliases and word forms are added, each weighted below the words you typed and capped together, so a synonym can surface a passage you would never have seen and can never outrank a literal match.</span></li>
+                <li><b>Rank twice, then re-score</b><span>Okapi BM25 and — where a document was embedded — cosine similarity run over the whole base and combine into a hundred candidates. A <strong>cross-encoder</strong> then scores each one as a pair with your question: coverage, how tightly your words sit together, whether their order survived, an exact substring, a heading match, and where in the passage the match falls. It is arithmetic over six features, <strong>not a language model</strong>.</span></li>
+                <li><b>Twenty down to ten</b><span>Near-duplicates are dropped, ten passages are chosen for relevance against redundancy rather than score alone, and each is handed its neighbours in the same file as context. Nothing is re-chunked — the window is assembled at question time.</span></li>
+              </ol>
+              <p class="mode__heading">When to use it</p>
+              <p class="mode__when">Use it when the wrong passage is expensive: a policy clause, a spec, a version-specific answer. It is the only mode that re-scores its own shortlist, and the only one whose every stage can be switched off and measured — <code>python -m rag.precision.benchmark</code> reports Recall@K, MRR and nDCG for the pipeline with each stage removed.</p>
+              <p class="mode__cost">Slower · ten stages, plus one index built per knowledge base</p>
+            </div>
+          </div>
+        </details>
       </div>
 
       <!-- The panel a mode opens into.
-           ONE dialog for all six, not six dialogs: the panel element itself is
+           ONE dialog for all seven, not seven dialogs: the panel element itself is
            moved in here on open and moved back to its <details> on close, so
            there is a single copy of every flowchart and every step list in the
-           document. Cloning instead would double six SVGs, and duplicate what a
+           document. Cloning instead would double seven SVGs, and duplicate what a
            screen reader and find-in-page walk through.
            Empty in the markup on purpose — with JavaScript off this element is
            never opened and each <details> expands in place, which is why the
@@ -1137,7 +1321,7 @@
             <rect class="d-surface-accent" x="350" y="206" width="280" height="104" rx="12"/>
             <rect class="d-accent" x="351.5" y="220" width="3" height="76" rx="1.5"/>
             <text class="d-label" x="370" y="238">RAG engine</text>
-            <text class="d-sub" x="370" y="261">6 modes · lexical scoring</text>
+            <text class="d-sub" x="370" y="261">7 modes · lexical scoring</text>
             <text class="d-sub" x="370" y="280">optional embedding blend</text>
             <text class="d-sub" x="370" y="299">evidence gate · citations</text>
           </g>
@@ -1315,7 +1499,7 @@
             <rect class="d-surface-accent" x="26" y="338" width="290" height="84" rx="12"/>
             <rect class="d-accent" x="27.5" y="350" width="3" height="60" rx="1.5"/>
             <text class="d-label" x="44" y="362">RAG engine</text>
-            <text class="d-sub" x="44" y="382">6 modes · lexical scoring</text>
+            <text class="d-sub" x="44" y="382">7 modes · lexical scoring</text>
             <text class="d-sub" x="44" y="398">optional embedding blend</text>
             <text class="d-sub" x="44" y="414">evidence gate · citations</text>
           </g>
@@ -1428,9 +1612,10 @@
               </svg>
             </h3>
             <p>
-              Your question hits the mode you picked. All six score the same chunk set — lexical term
-              overlap by default, fused with cosine similarity where a document was embedded. An
-              evidence gate decides whether the passages actually support an answer; if not, CorpusTrace
+              Your question hits the mode you picked. All seven read the same chunk set: six score it on
+              lexical term overlap, fused with cosine similarity where a document was embedded, while
+              High Precision runs BM25 and a cross-encoder over those same rows instead. An evidence
+              gate decides whether the passages actually support an answer; if not, CorpusTrace
               declines and names the vocabulary that missed.
             </p>
           </div>

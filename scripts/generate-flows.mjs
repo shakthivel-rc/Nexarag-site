@@ -1,25 +1,26 @@
 #!/usr/bin/env node
 /**
- * generate-flows.mjs — the six retrieval-mode flowcharts.
+ * generate-flows.mjs — the seven retrieval-mode flowcharts.
  *
- *   node scripts/generate-flows.mjs            # write all six into index.html
+ *   node scripts/generate-flows.mjs            # write all seven into index.html
  *   node scripts/generate-flows.mjs --stdout   # print them, change nothing
  *   node scripts/generate-flows.mjs --check    # fail if index.html is out of date
  *
- * WHY THIS IS A GENERATOR AND NOT SIX HAND-WRITTEN SVGs
+ * WHY THIS IS A GENERATOR AND NOT SEVEN HAND-WRITTEN SVGs
  *
  * A flowchart is arithmetic: every box position depends on the height of the box
  * above it, and every height depends on how many lines its label wraps to. Hand
- * placing ~40 coordinates per diagram across six diagrams means 240 numbers that
+ * placing ~40 coordinates per diagram across seven diagrams means 280 numbers that
  * are individually plausible and collectively inconsistent, and every copy edit
  * ("passages" → "passages in the base") silently breaks a layout somewhere else
- * in the file. Here the copy is the input and the geometry is derived, so the six
+ * in the file. Here the copy is the input and the geometry is derived, so the
  * diagrams are consistent by construction and an edit cannot leave a stale number
  * behind.
  *
  * THE DIAGRAMS ARE READ OFF THE SOURCE, NOT OFF RAG FOLKLORE
  *
- * Every box, number and formula below was taken from CorpusTrace-api/rag/service.py.
+ * Every box, number and formula below was taken from CorpusTrace-api/rag/service.py,
+ * and for the seventh mode from CorpusTrace-api/rag/precision/.
  * The function each row describes is named in a comment beside it. Where the code
  * does something the literature would not predict — the entity boost SATURATES and
  * is capped at a fraction of the best lexical score; the "agent" plans with a
@@ -101,7 +102,7 @@ const F = {
 /* Each spec is read against a named function in CorpusTrace-api/rag/service.py. The
    trailing three rows of most modes are the same three rows on purpose: the
    sufficiency gate in `_plan_answer` runs after the mode has returned, so every
-   mode really does end identically. Showing that six times is the point — it is
+   mode really does end identically. Showing that seven times is the point — it is
    how a reader learns that refusing is not a Corrective-mode feature. */
 
 const SHARED_TAIL = [
@@ -122,6 +123,12 @@ const SHARED_TAIL = [
   },
   { t: 'terminal', tone: 'good', label: 'Answer, from those passages, with citations' },
 ];
+
+/* High Precision does NOT run `_blend_semantic`: it has already fused the dense side with
+   normalised, weighted scores of its own, and a second reciprocal-rank pass over the same
+   list would throw that ranking away. So it takes the tail from the gate down — which every
+   mode really does share, because the gate lives in `_plan_answer`, after the mode returns. */
+const GATE_TAIL = SHARED_TAIL.slice(1);
 
 const MODES = [
   {
@@ -396,6 +403,128 @@ const MODES = [
       },
       { t: 'terminal', tone: 'good', label: 'Answer, with up to 7 citations' },
       { t: 'note', text: 'Nothing here is an agent. Five tools, two keyword tests, one weighted merge.' },
+    ],
+  },
+
+  {
+    id: 'high-precision',
+    title: 'High Precision — ten stages, and no language model in any of them',
+    desc:
+      'The one mode that does not reuse the default scoring. Your question is folded to a canonical form, ' +
+      'spell-checked against the words your own documents actually contain, and widened by dictionary — ' +
+      'abbreviations, synonyms, entity aliases and word forms — with every added word weighted lower than the ' +
+      'ones you typed and capped so it can surface a passage but never outrank a literal match. Filters read out ' +
+      'of the question are applied only when enough passages survive them. Okapi BM25 and, where a document was ' +
+      'embedded, cosine similarity then run over the whole base; their normalised scores are combined with your ' +
+      'own words and any metadata agreement into a pool of a hundred. A cross-encoder re-scores each of those as a ' +
+      'pair with the question — coverage, how tightly the words sit together, whether their order survived, an ' +
+      'exact substring, a heading match, and where in the passage the match falls — and keeps twenty. ' +
+      'Near-duplicates are dropped at 90% term overlap, ten are chosen for relevance against redundancy, and each ' +
+      'one is handed its surrounding passages as context. The same evidence gate every other mode ends on follows. ' +
+      'Nothing here builds a prompt or asks a model anything.',
+    rows: [
+      // rag/precision/normalize.py :: normalize_query + correct_spelling
+      {
+        t: 'stage',
+        kind: 'accent',
+        label: 'Your question, folded to one form',
+        subs: [
+          'unicode, punctuation, case and possessives flattened — then spelling checked',
+          'against your own documents, never a general dictionary: your files are the',
+          'only authority on what your vocabulary is.',
+        ],
+      },
+      // rag/precision/expansion.py :: expand_query
+      {
+        t: 'list',
+        head: 'WIDENED BY DICTIONARY, NEVER BY A MODEL',
+        items: [
+          { name: 'abbreviations', sub: 'auth · config · docs · k8s · env · repo' },
+          { name: 'synonyms and domain terms', sub: 'from a built-in list plus any file you point it at' },
+          { name: 'entity aliases', sub: 'the recurring names pulled out of your own documents' },
+          { name: 'word forms and hyphenation', sub: 'plurals, -ing, -ed · runbook ⇄ run-book ⇄ run book' },
+        ],
+        subs: [
+          'An added word carries 0.45 of a typed one, and everything they contribute',
+          'together is capped at 35% of your best literal match — so a synonym can',
+          'surface a passage, and can never outrank the words you actually used.',
+        ],
+      },
+      // rag/precision/metadata.py :: infer_filters + apply_filters
+      {
+        t: 'stage',
+        label: 'Filters read out of the question',
+        subs: [
+          'a version, a document type or a category. One that would empty the pool is',
+          'recorded and dropped — a guess read out of a question must not remove the answer.',
+        ],
+      },
+      // rag/precision/bm25.py + the dense side, both over every passage in the base.
+      {
+        t: 'lanes',
+        items: [
+          {
+            label: 'Okapi BM25',
+            subs: ['k1 1.2, b 0.75 — a repeated term', 'saturates instead of accumulating'],
+          },
+          {
+            label: 'Cosine, where embedded',
+            subs: ['one embedding model only; vectors', 'from two never meet in one score'],
+          },
+        ],
+      },
+      // rag/precision/pipeline.py :: retrieve — the weighted, normalised fuse.
+      {
+        t: 'formula',
+        head: 'COMBINE, THEN KEEP 100',
+        converge: 2,
+        lines: [
+          'score = 1.0 × cosine (normalised)',
+          '      + 1.0 × BM25   (normalised)',
+          '      + 0.5 × your words, in full',
+          '      + 0.35 × metadata agreement',
+          '      × (1 − any penalty)',
+        ],
+        subs: ['both are normalised first: a cosine and a BM25 score', 'are different scales and do not add up as they are'],
+      },
+      // rag/precision/rerank.py :: lexical_cross_encode
+      {
+        t: 'formula',
+        head: 'CROSS-ENCODER — SCORES THE PAIR',
+        lines: [
+          'IDF coverage         0.34',
+          'word proximity       0.22',
+          'preserved word order 0.16',
+          'exact substring      0.14',
+          'heading match        0.08',
+          'position in passage  0.06',
+        ],
+        subs: [
+          'Scored per (question, passage) pair, so none of it can be precomputed.',
+          'Reads only the words you typed. Keeps the top 20.',
+        ],
+      },
+      // rag/precision/diversity.py :: deduplicate
+      {
+        t: 'stage',
+        label: 'Drop near-duplicates',
+        subs: ['90% shared terms. The chunker overlaps by design, so a base', 'genuinely holds passages that say the same thing twice'],
+      },
+      // rag/precision/diversity.py :: maximal_marginal_relevance
+      {
+        t: 'formula',
+        head: 'RELEVANCE AGAINST REDUNDANCY',
+        lines: ['pick by 0.7 × relevance', '      − 0.3 × similarity to', '            what is already picked'],
+        subs: ['ten survive — the top ten by score alone would be', 'the same passage restated ten ways'],
+      },
+      // rag/precision/parents.py :: recover_parent
+      {
+        t: 'stage',
+        label: 'Hand each one its neighbours',
+        subs: ['its neighbours in the same file, up to 2400 characters. Nothing is', 're-chunked — the window is assembled at question time'],
+      },
+      ...GATE_TAIL,
+      { t: 'note', text: 'No prompt is built and no model is asked anything. The reranker is arithmetic over six features.' },
     ],
   },
 ];
